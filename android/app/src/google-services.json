@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "129000946263",
+    "project_id": "starkmarkdown-v1",
+    "storage_bucket": "starkmarkdown-v1.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:129000946263:android:870919238d1fa965764112",
+        "android_client_info": {
+          "package_name": "com.example.starkmarkdown"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "129000946263-f3mnmbqkb1q3flh7ui491fm5l3088qr8.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.starkmarkdown",
+            "certificate_hash": "b968475d136c63ab5c2acead5ec317cbd5ef8a64"
+          }
+        },
+        {
+          "client_id": "129000946263-it6nmjfh38nkgrb9hcuqgd9gsuqtv1p8.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDP2qhM99MIkXEmGrP4RXPwwcXh4rEYBAY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "129000946263-it6nmjfh38nkgrb9hcuqgd9gsuqtv1p8.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

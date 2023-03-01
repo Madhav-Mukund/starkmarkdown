@@ -5,21 +5,23 @@ import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:starkmarkdown/windows/markdown_editor.dart';
-import 'package:starkmarkdown/windows/me1.dart';
-import 'package:starkmarkdown/windows/search.dart';
-import 'package:starkmarkdown/windows/userdata.dart';
+import 'markdown_editor.dart';
+import 'me1.dart';
+import 's1.dart';
+import 'userdata.dart';
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'h1.dart';
-import 'login.dart';
+import 'l1.dart';
 import 'filedata.dart';
 
 class HomeScreen extends StatefulWidget {
   final String? fileTitle;
   FileData file = FileData();
   FileData openfile = FileData();
+  UserData userdata = UserData();
 
   HomeScreen({Key? key, this.fileTitle}) : super(key: key);
 
@@ -48,32 +50,41 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void initDynamicLinks() async {
+    FirebaseDynamicLinks.instance.onLink.listen((dynamicLinkData) async {
+      final Uri deepLink = dynamicLinkData.link;
+      print('Dynamic Link: $deepLink');
+      _openFileFromDynamicLink(deepLink);
+    });
     final PendingDynamicLinkData? data =
         await FirebaseDynamicLinks.instance.getInitialLink();
     final Uri? deepLink = data?.link;
     if (deepLink != null) {
       print('Dynamic Link: $deepLink');
-      // Navigate to the appropriate page/view using the data in the dynamic link
-      // For example, if the link contains a file ID, navigate to that file's editor page
-      // You can use the Navigator class to navigate to different views/pages in your app
-      String uid = FirebaseAuth.instance.currentUser!.uid;
-      String FileID = deepLink.queryParameters['fid']!;
-      widget.openfile = (await FileData.getFileDataById(FileID, uid))!;
-      String thistitle, thisfile_content;
-      thistitle = widget.openfile.title!;
-      thisfile_content = widget.openfile.file_content!;
-      print(thisfile_content);
 
-      Navigator.push(
+      _openFileFromDynamicLink(deepLink);
+    }
+  }
+
+  void _openFileFromDynamicLink(Uri deepLink) async {
+    String UserID = deepLink.queryParameters['uid']!;
+    String fileID = deepLink.queryParameters['fid']!;
+    print('yaha to aagya ab?');
+    final DocumentSnapshot fileSnapshot = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(UserID)
+        .collection('files')
+        .doc(fileID)
+        .get();
+
+    String title = fileSnapshot['title'];
+
+    String initialValue = fileSnapshot['file_content'];
+    Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => MarkdownEditor(
-            title: thistitle,
-            initialValue: thisfile_content,
-          ),
-        ),
-      );
-    }
+          builder: (context) =>
+              MarkdownNew(initialValue: initialValue, title: title),
+        ));
   }
 
   void _subscribeToAuthChanges() {
@@ -133,11 +144,52 @@ class _HomeScreenState extends State<HomeScreen> {
       sortboolby = true;
     } else if (value == 'dateModifiedAscending') {
       sortby = 'last_updated';
-      sortboolby = true;
+      sortboolby = false;
     } else if (value == 'dateModifiedDescending') {
       sortby = 'last_updated';
-      sortboolby = false;
+      sortboolby = true;
     }
+  }
+
+  List<String> getSortedTitles(DocumentSnapshot<Object?> snapshot) {
+    List<String> titles = [];
+    if (snapshot.exists) {
+      Map<String, dynamic> data = snapshot.data() as Map<String, dynamic>;
+      if (data.containsKey('titles')) {
+        titles = List<String>.from(data['titles']);
+      }
+    }
+    titles.sort((a, b) => _naturalSortCompare(a, b));
+    return titles;
+  }
+
+  int _naturalSortCompare(String a, String b) {
+    List<String> aParts = _splitAlphaNumeric(a);
+    List<String> bParts = _splitAlphaNumeric(b);
+
+    for (int i = 0; i < aParts.length && i < bParts.length; i++) {
+      String aPart = aParts[i];
+      String bPart = bParts[i];
+      if (aPart != bPart) {
+        if (_isNumber(aPart) && _isNumber(bPart)) {
+          return int.parse(aPart).compareTo(int.parse(bPart));
+        } else {
+          return aPart.compareTo(bPart);
+        }
+      }
+    }
+
+    return aParts.length.compareTo(bParts.length);
+  }
+
+  List<String> _splitAlphaNumeric(String s) {
+    RegExp exp = RegExp(r'(\d+|\D+)');
+    Iterable<Match> matches = exp.allMatches(s);
+    return matches.map((match) => match.group(0)!).toList();
+  }
+
+  bool _isNumber(String s) {
+    return int.tryParse(s) != null;
   }
 
   @override
@@ -250,6 +302,7 @@ class _HomeScreenState extends State<HomeScreen> {
               children: snapshot.data!.docs.map((DocumentSnapshot document) {
                 Map<String, dynamic> data =
                     document.data() as Map<String, dynamic>;
+                List<String> sortedtitles = getSortedTitles(document);
 
                 return ListTile(
                   title: Text(data['title']),
@@ -280,10 +333,13 @@ class _HomeScreenState extends State<HomeScreen> {
                         String uid = FirebaseAuth.instance.currentUser!.uid;
                         widget.file = (await FileData.getFileDataByTitle(
                             data['title'], uid))!;
-                        // TODO: implement share file functionality
+                        widget.userdata =
+                            (await UserData.getUserDataByUid(uid))!;
                         String mydeeplink =
                             await Firebasedynamiclink.myDynamiclink(
-                                widget.file);
+                                widget.file, widget.userdata);
+                        await Share.share(
+                            'Check out my file: ${widget.file.title}\n\n$mydeeplink');
 
                         print(mydeeplink);
                         print(widget.file.fid);

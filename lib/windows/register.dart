@@ -1,11 +1,11 @@
 // ignore_for_file: body_might_complete_normally_catch_error, library_private_types_in_public_api
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:starkmarkdown/windows/home.dart';
+import 'home.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:starkmarkdown/windows/userdata.dart';
+import 'userdata.dart';
 import 'package:email_validator/email_validator.dart';
 import 'package:uuid/uuid.dart';
 

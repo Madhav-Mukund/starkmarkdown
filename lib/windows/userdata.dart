@@ -36,4 +36,20 @@ class UserData {
       'secondName': secondName,
     };
   }
+
+  static Future<UserData?> getUserDataByUid(String uid) async {
+    try {
+      final snapshot =
+          await FirebaseFirestore.instance.collection('users').doc(uid).get();
+      if (snapshot.exists) {
+        final userData = UserData.fromSnapshot(snapshot);
+        return userData;
+      } else {
+        return null;
+      }
+    } catch (e) {
+      print('Error retrieving user data: $e');
+      return null;
+    }
+  }
 }

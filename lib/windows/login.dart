@@ -1,9 +1,9 @@
-import 'package:starkmarkdown/windows/home.dart';
-import 'package:starkmarkdown/windows/register.dart';
+import 'register.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'home.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({Key? key}) : super(key: key);

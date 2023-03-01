@@ -4,6 +4,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:uuid/uuid.dart';
 
+import 'MarkdownPreview.dart';
+
 class MarkdownNew extends StatefulWidget {
   final String initialValue;
   final String title;
@@ -17,6 +19,7 @@ class MarkdownNew extends StatefulWidget {
 class _MarkdownNewState extends State<MarkdownNew> {
   late TextEditingController _controller;
   late TextEditingController _titleController;
+  String previewdata = '';
 
   @override
   void initState() {
@@ -75,12 +78,15 @@ class _MarkdownNewState extends State<MarkdownNew> {
         .collection('files');
 
     final newFileId = Uuid().v4();
+    List<String> filearrays = fileContent.split(' ');
 
     await filesRef.doc(newFileId).set({
       'fid': newFileId,
       'title': title,
       'file_content': fileContent,
       'last_updated': DateTime.now(),
+      'created_at': DateTime.now(),
+      'FileArrays': filearrays,
     });
   }
 
@@ -105,24 +111,50 @@ class _MarkdownNewState extends State<MarkdownNew> {
             },
             icon: Icon(Icons.save),
           ),
+          IconButton(
+            icon: Icon(Icons.visibility),
+            onPressed: () {
+              previewdata = contentController.text;
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => MyMarkdownScreen(markdown: previewdata),
+                ),
+              );
+            },
+          ),
         ],
       ),
       body: Column(
         children: [
-          TextField(
-            controller: _titleController,
-            decoration: InputDecoration(
-              hintText: "File title",
+          Container(
+            width: double.infinity,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadiusDirectional.circular(10),
+              border: Border.all(width: 1, color: Colors.grey),
+            ),
+            child: TextField(
+              controller: _titleController,
+              decoration: InputDecoration(
+                border: InputBorder.none,
+                hintText: "File title",
+              ),
             ),
           ),
-          Expanded(
-            child: TextField(
-              controller: contentController,
-              decoration: InputDecoration(
-                hintText: "Markdown",
+          Container(
+            width: double.infinity,
+            child: SingleChildScrollView(
+              child: TextField(
+                controller: contentController,
+                decoration: InputDecoration(
+                  hintText: "Markdown",
+                ),
+                onChanged: (value) {
+                  previewdata = contentController.text;
+                },
+                keyboardType: TextInputType.multiline,
+                maxLines: null,
               ),
-              keyboardType: TextInputType.multiline,
-              maxLines: null,
             ),
           ),
         ],

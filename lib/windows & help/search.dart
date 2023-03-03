@@ -85,28 +85,16 @@ class _SearchScreenState extends State<SearchScreen> {
 
       if (s) {
         List<String> filearrays = searchText.split(' ');
-        print('yaha bhi aaya');
+
         List<QueryDocumentSnapshot> contentResults =
             await _searchFilesContent(filearrays);
-        for (var doc in contentResults.toList()) {
-          print('ID: ${doc.id}');
-          print('Title: ${doc['title']}');
-          print('File content: ${doc['file_content']}');
-          print('Created at: ${doc['created_at']}');
-        }
+
         results.addAll(contentResults.toSet().toList());
-        print(searchText);
       }
 
       setState(() {
-        print('yaha aaya?');
         _searchResults = results;
-        for (var doc in results) {
-          print('ID: ${doc.id}');
-          print('Title: ${doc['title']}');
-          print('File content: ${doc['file_content']}');
-          print('Created at: ${doc['created_at']}');
-        }
+
         searchtext = searchText;
       });
     } else {
@@ -125,7 +113,7 @@ class _SearchScreenState extends State<SearchScreen> {
         .collection('files')
         .where('FileArrays', arrayContainsAny: filearrays)
         .get();
-    print('content lene aaya');
+
     return querySnapshot.docs;
   }
 
@@ -152,7 +140,7 @@ class _SearchScreenState extends State<SearchScreen> {
           ),
           Row(
             children: [
-              Text(
+              const Text(
                 'Filter By:',
                 style: TextStyle(fontSize: 20.0),
               ),
@@ -194,9 +182,8 @@ class _SearchScreenState extends State<SearchScreen> {
                       }
                       _searchFiles(Searchquery, _data.filterByDate,
                           _data.searchisincontent);
-                      print('dabaya');
                     },
-                    child: Text('Search'),
+                    child: const Text('Search'),
                   ),
                 ),
               ),
@@ -214,7 +201,7 @@ class _SearchScreenState extends State<SearchScreen> {
                         labelText: 'Start Date',
                         hintText: 'YYYY-MM-DD',
                         suffixIcon: IconButton(
-                          icon: Icon(Icons.clear),
+                          icon: const Icon(Icons.clear),
                           onPressed: () {
                             _startDateController.clear();
                             _data.startDate = null;
@@ -226,7 +213,7 @@ class _SearchScreenState extends State<SearchScreen> {
                   ),
                 ),
                 IconButton(
-                  icon: Icon(Icons.calendar_today),
+                  icon: const Icon(Icons.calendar_today),
                   onPressed: () async {
                     final selectedDate = await showDatePicker(
                       context: context,
@@ -256,7 +243,7 @@ class _SearchScreenState extends State<SearchScreen> {
                         labelText: 'End Date',
                         hintText: 'YYYY-MM-DD',
                         suffixIcon: IconButton(
-                          icon: Icon(Icons.clear),
+                          icon: const Icon(Icons.clear),
                           onPressed: () {
                             _endDateController.clear();
                             _data.endDate = null;
@@ -268,7 +255,7 @@ class _SearchScreenState extends State<SearchScreen> {
                   ),
                 ),
                 IconButton(
-                  icon: Icon(Icons.calendar_today),
+                  icon: const Icon(Icons.calendar_today),
                   onPressed: () async {
                     final selectedDate = await showDatePicker(
                       context: context,
@@ -297,9 +284,9 @@ class _SearchScreenState extends State<SearchScreen> {
                         decoration: InputDecoration(
                           labelText: 'Keywords',
                           hintText:
-                              'Enter keywords seperated by commas(Upto 10 keywords)',
+                              'Enter keywords seperated by comma(Upto 10)',
                           suffixIcon: IconButton(
-                            icon: Icon(Icons.clear),
+                            icon: const Icon(Icons.clear),
                             onPressed: () {
                               _keywordsController.clear();
                               _data.searchisincontent = false;

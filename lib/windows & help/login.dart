@@ -3,8 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:flutter_signin_button/flutter_signin_button.dart';
-import 'package:starkmarkdown/windows/userdata.dart';
+import 'userdata.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:uuid/uuid.dart';
 
@@ -198,35 +197,17 @@ class _LoginScreenState extends State<LoginScreen> {
         );
         if (userCredential.user != null) {
           await saveUser(userCredential.user!.uid);
-          Navigator.pushReplacement(
+          Navigator.pushAndRemoveUntil(
             context,
             MaterialPageRoute(builder: (context) => HomeScreen()),
+            (route) => false,
           );
         }
-      } on FirebaseAuthException catch (error) {
-        if (error.code == 'user-not-found') {
-          Fluttertoast.showToast(
-              msg: "User not found",
-              toastLength: Toast.LENGTH_SHORT,
-              gravity: ToastGravity.BOTTOM,
-              timeInSecForIosWeb: 1,
-              backgroundColor: Colors.red,
-              textColor: Colors.white,
-              fontSize: 16.0);
-        } else if (error.code == 'wrong-password') {
-          Fluttertoast.showToast(
-              msg: "Wrong password entered",
-              toastLength: Toast.LENGTH_SHORT,
-              gravity: ToastGravity.BOTTOM,
-              timeInSecForIosWeb: 1,
-              backgroundColor: Colors.red,
-              textColor: Colors.white,
-              fontSize: 16.0);
-        } else {
-          setState(() {
-            errorMessage = error.message;
-          });
-        }
+      } on FirebaseAuthException catch (e) {
+        setState(() {
+          errorMessage = e.message;
+        });
+        Fluttertoast.showToast(msg: e.message!);
       }
     }
   }
@@ -251,6 +232,8 @@ class _LoginScreenState extends State<LoginScreen> {
         userModel.uid = user.uid;
         String? firstname;
         String? secondname;
+        firstname = googleSignInAccount.displayName!.split(" ")[0];
+        secondname = googleSignInAccount.displayName!.split(" ")[1];
 
         userModel.firstName = firstname;
         userModel.secondName = secondname;
@@ -272,9 +255,10 @@ class _LoginScreenState extends State<LoginScreen> {
           "last_updated": Timestamp.now(),
         });
         await saveUser(userCredential.user!.uid);
-        Navigator.pushReplacement(
+        Navigator.pushAndRemoveUntil(
           context,
           MaterialPageRoute(builder: (context) => HomeScreen()),
+          (route) => false,
         );
       }
     }

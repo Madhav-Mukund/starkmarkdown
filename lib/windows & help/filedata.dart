@@ -1,6 +1,4 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'userdata.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 
 class FileData {
   String? fid;

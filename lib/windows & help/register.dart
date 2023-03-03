@@ -301,7 +301,9 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
       "fid": newFileId,
       "title": "Demo_file",
       "file_content": "My markdown is weak",
-      "last_updated": ''
+      "last_updated": Timestamp.now(),
+      "created_at": Timestamp.now(),
+      "FileArrays": ["My", "markdown", "is", "weak"],
     });
     Navigator.pushAndRemoveUntil(
         (context),

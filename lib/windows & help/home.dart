@@ -1,20 +1,18 @@
 // ignore_for_file: prefer_const_constructors, prefer_const_literals_to_create_immutables, use_build_context_synchronously, duplicate_ignore
 
-import 'dart:io';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'markdown_editor.dart';
-import 'me1.dart';
-import 's1.dart';
+import 'MarkdownNew.dart';
+import 'search.dart';
 import 'userdata.dart';
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
-import 'package:url_launcher/url_launcher.dart';
-import 'h1.dart';
-import 'l1.dart';
+
+import 'Deeplinks.dart';
+import 'login.dart';
 import 'filedata.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -52,15 +50,13 @@ class _HomeScreenState extends State<HomeScreen> {
   void initDynamicLinks() async {
     FirebaseDynamicLinks.instance.onLink.listen((dynamicLinkData) async {
       final Uri deepLink = dynamicLinkData.link;
-      print('Dynamic Link: $deepLink');
+
       _openFileFromDynamicLink(deepLink);
     });
     final PendingDynamicLinkData? data =
         await FirebaseDynamicLinks.instance.getInitialLink();
     final Uri? deepLink = data?.link;
     if (deepLink != null) {
-      print('Dynamic Link: $deepLink');
-
       _openFileFromDynamicLink(deepLink);
     }
   }
@@ -68,7 +64,7 @@ class _HomeScreenState extends State<HomeScreen> {
   void _openFileFromDynamicLink(Uri deepLink) async {
     String UserID = deepLink.queryParameters['uid']!;
     String fileID = deepLink.queryParameters['fid']!;
-    print('yaha to aagya ab?');
+
     final DocumentSnapshot fileSnapshot = await FirebaseFirestore.instance
         .collection('users')
         .doc(UserID)
@@ -340,10 +336,6 @@ class _HomeScreenState extends State<HomeScreen> {
                                 widget.file, widget.userdata);
                         await Share.share(
                             'Check out my file: ${widget.file.title}\n\n$mydeeplink');
-
-                        print(mydeeplink);
-                        print(widget.file.fid);
-                        print(widget.file.file_content);
                       } else if (value == 'delete') {
                         showDialog(
                           context: context,
@@ -421,8 +413,11 @@ class _HomeScreenState extends State<HomeScreen> {
               onPressed: () async {
                 await FirebaseAuth.instance.signOut();
                 _setIsLoggedIn(false);
-                Navigator.of(context).pushReplacement(
-                    MaterialPageRoute(builder: (context) => LoginScreen()));
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(builder: (context) => LoginScreen()),
+                  (route) => false,
+                );
               },
             ),
           ],

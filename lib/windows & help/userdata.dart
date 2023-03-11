@@ -5,18 +5,26 @@ class UserData {
   String? email;
   String? firstName;
   String? secondName;
+  String? profileImageUrl;
 
-  UserData({this.uid, this.email, this.firstName, this.secondName});
+  UserData({
+    this.uid,
+    this.email,
+    this.firstName,
+    this.secondName,
+    this.profileImageUrl,
+  });
 
-  // receiving data from server
   factory UserData.fromMap(map) {
     return UserData(
       uid: map['uid'],
       email: map['email'],
       firstName: map['firstName'],
       secondName: map['secondName'],
+      profileImageUrl: map['profileImageUrl'],
     );
   }
+
   factory UserData.fromSnapshot(DocumentSnapshot snapshot) {
     Map<String, dynamic> data = snapshot.data() as Map<String, dynamic>;
     return UserData(
@@ -24,6 +32,7 @@ class UserData {
       secondName: data['secondName'],
       email: data['email'],
       uid: data['uid'],
+      profileImageUrl: data['profileImageUrl'],
     );
   }
 
@@ -34,6 +43,7 @@ class UserData {
       'email': email,
       'firstName': firstName,
       'secondName': secondName,
+      'profileImageUrl': profileImageUrl,
     };
   }
 

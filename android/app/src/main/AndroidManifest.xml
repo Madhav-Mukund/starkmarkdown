@@ -1,7 +1,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.example.starkmarkdown">
    <application
-        android:label="starkmarkdown"
+        android:label="StarkMarkdown"
         android:name="${applicationName}"
         
         android:icon="@mipmap/ic_launcher">

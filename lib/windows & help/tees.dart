@@ -7,7 +7,6 @@ import 'package:share_plus/share_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'markdown_editor.dart';
 import 'MarkdownNew.dart';
-import 'profile.dart';
 import 'search.dart';
 import 'userdata.dart';
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
@@ -30,30 +29,22 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   late SharedPreferences _prefs;
+  late String _markdown;
   bool _isLoggedIn = false;
   User? _user = FirebaseAuth.instance.currentUser;
   UserData _loggedInUser = UserData();
   String _sortBy = 'titleAscending';
   String sortby = 'title';
   bool sortboolby = false;
-  List<String> sortedTitles = [];
-  bool isDarkMode = false;
 
   @override
   void initState() {
     super.initState();
     _loadSharedPreferences();
     _loadUserData();
-    AuthChanges();
+    _markdown = '';
+    _subscribeToAuthChanges();
     initDynamicLinks();
-    _loadTheme();
-  }
-
-  void _loadTheme() async {
-    _prefs = await SharedPreferences.getInstance();
-    setState(() {
-      isDarkMode = _prefs.getBool('isDarkMode') ?? false;
-    });
   }
 
   void initDynamicLinks() async {
@@ -92,7 +83,7 @@ class _HomeScreenState extends State<HomeScreen> {
         ));
   }
 
-  void AuthChanges() {
+  void _subscribeToAuthChanges() {
     FirebaseAuth.instance.authStateChanges().listen((User? user) async {
       if (user == null) {
         // User is signed out, remove persistent authentication
@@ -156,51 +147,52 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  List<String> getSortedTitles(bool sortby, List<String> tosort) {
-    List<String> titles = tosort;
-    if (sortby) {
-      titles.sort((a, b) => b.toLowerCase().compareTo(a.toLowerCase()));
-    } else {
-      titles.sort((a, b) => a.toLowerCase().compareTo(b.toLowerCase()));
+  List<String> getSortedTitles(DocumentSnapshot<Object?> snapshot) {
+    List<String> titles = [];
+    if (snapshot.exists) {
+      Map<String, dynamic> data = snapshot.data() as Map<String, dynamic>;
+      if (data.containsKey('titles')) {
+        titles = List<String>.from(data['titles']);
+      }
     }
+    titles.sort((a, b) => _naturalSortCompare(a, b));
     return titles;
+  }
+
+  int _naturalSortCompare(String a, String b) {
+    List<String> aParts = _splitAlphaNumeric(a);
+    List<String> bParts = _splitAlphaNumeric(b);
+
+    for (int i = 0; i < aParts.length && i < bParts.length; i++) {
+      String aPart = aParts[i];
+      String bPart = bParts[i];
+      if (aPart != bPart) {
+        if (_isNumber(aPart) && _isNumber(bPart)) {
+          return int.parse(aPart).compareTo(int.parse(bPart));
+        } else {
+          return aPart.compareTo(bPart);
+        }
+      }
+    }
+
+    return aParts.length.compareTo(bParts.length);
+  }
+
+  List<String> _splitAlphaNumeric(String s) {
+    RegExp exp = RegExp(r'(\d+|\D+)');
+    Iterable<Match> matches = exp.allMatches(s);
+    return matches.map((match) => match.group(0)!).toList();
+  }
+
+  bool _isNumber(String s) {
+    return int.tryParse(s) != null;
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
-          title: Row(
-            children: [
-              GestureDetector(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => ProfileScreen(),
-                    ),
-                  );
-                },
-                child: CircleAvatar(
-                  radius: 15,
-                  backgroundImage: _loggedInUser.profileImageUrl != null
-                      ? NetworkImage(_loggedInUser.profileImageUrl!)
-                      : AssetImage('images/default_profile.png')
-                          as ImageProvider,
-                  child:
-                      _loggedInUser == null ? Icon(Icons.account_circle) : null,
-                ),
-              ),
-              SizedBox(width: 10),
-              Text(
-                "Welcome ${_loggedInUser != null ? _loggedInUser.firstName : 'User'}",
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ],
-          ),
+          title: Text("Welcome ${_loggedInUser.firstName}"),
           centerTitle: true,
           actions: [
             IconButton(
@@ -224,92 +216,49 @@ class _HomeScreenState extends State<HomeScreen> {
               itemBuilder: (BuildContext context) => [
                 PopupMenuItem(
                   value: 'titleAscending',
-                  child: Row(
-                    children: [
-                      Icon(Icons.sort_by_alpha),
-                      SizedBox(width: 8),
-                      Text('Sort by title (A-Z)'),
-                    ],
-                  ),
+                  child: Text('Sort by title (A-Z)'),
                 ),
                 PopupMenuItem(
                   value: 'titleDescending',
-                  child: Row(
-                    children: [
-                      Icon(Icons.sort_by_alpha),
-                      SizedBox(width: 8),
-                      Text('Sort by title (Z-A)'),
-                    ],
-                  ),
+                  child: Text('Sort by title (Z-A)'),
                 ),
                 PopupMenuItem(
                   value: 'dateModifiedAscending',
-                  child: Row(
-                    children: [
-                      Icon(Icons.calendar_today),
-                      SizedBox(width: 8),
-                      Text('Sort by date modified (oldest first)'),
-                    ],
-                  ),
+                  child: Text('Sort by date modified (oldest first)'),
                 ),
                 PopupMenuItem(
                   value: 'dateModifiedDescending',
-                  child: Row(
-                    children: [
-                      Icon(Icons.calendar_today),
-                      SizedBox(width: 8),
-                      Text('Sort by date modified (newest first)'),
-                    ],
-                  ),
+                  child: Text('Sort by date modified (newest first)'),
                 ),
               ],
               child: IconButton(
                 icon: Icon(Icons.sort),
                 onPressed: () {
+                  // This function is called when the IconButton is pressed
+                  // and shows the popup menu
                   showMenu<String>(
                     context: context,
                     position: RelativeRect.fromLTRB(25.0, 50.0, 0.0, 0.0),
                     items: [
                       PopupMenuItem(
                         value: 'titleAscending',
-                        child: Row(
-                          children: [
-                            Text('Title (A-Z)'),
-                            SizedBox(width: 8),
-                          ],
-                        ),
+                        child: Text('Sort by title (A-Z)'),
                       ),
                       PopupMenuItem(
                         value: 'titleDescending',
-                        child: Row(
-                          children: [
-                            Text('Title (Z-A)'),
-                            SizedBox(width: 8),
-                          ],
-                        ),
+                        child: Text('Sort by title (Z-A)'),
                       ),
                       PopupMenuItem(
                         value: 'dateModifiedAscending',
-                        child: Row(
-                          children: [
-                            Text('Date Modified'),
-                            Icon(Icons.arrow_downward),
-                            SizedBox(width: 8),
-                          ],
-                        ),
+                        child: Text('Sort by date modified (oldest first)'),
                       ),
                       PopupMenuItem(
                         value: 'dateModifiedDescending',
-                        child: Row(
-                          children: [
-                            Text('Date Modified'),
-                            Icon(Icons.arrow_upward),
-                            SizedBox(width: 8),
-                          ],
-                        ),
+                        child: Text('Sort by date modified (newest first)'),
                       ),
                     ],
                   ).then((value) {
+                    // This function is called when a popup menu item is selected
                     setState(() {
                       _sortBy = value!;
                       _mysortfunction(_sortBy);
@@ -329,6 +278,7 @@ class _HomeScreenState extends State<HomeScreen> {
               .collection('users')
               .doc(_user!.uid)
               .collection('files')
+              .orderBy(sortby, descending: sortboolby)
               .snapshots(),
           builder:
               (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
@@ -343,49 +293,14 @@ class _HomeScreenState extends State<HomeScreen> {
             if (snapshot.data!.docs.isEmpty) {
               return Center(child: Text("No files"));
             }
-            if (sortby == 'title') {
-              List<String> titles = snapshot.data!.docs
-                  .map((DocumentSnapshot document) =>
-                      (document.data() as Map<String, dynamic>)['title'])
-                  .toList()
-                  .cast<String>();
-              sortedTitles = getSortedTitles(sortboolby, titles);
-            }
-            if ((sortby == 'last_updated') && (sortboolby)) {
-              List<QueryDocumentSnapshot> documents = snapshot.data!.docs;
-              documents.sort((a, b) =>
-                  (b.data() as Map<String, dynamic>)['last_updated'].compareTo(
-                      (a.data() as Map<String, dynamic>)['last_updated']));
-              sortedTitles = documents
-                  .map((document) =>
-                      (document.data() as Map<String, dynamic>)['title'])
-                  .toList()
-                  .cast<String>();
-            }
-            if ((sortby == 'last_updated') && (!sortboolby)) {
-              List<QueryDocumentSnapshot> documents = snapshot.data!.docs;
-              documents.sort((a, b) =>
-                  (a.data() as Map<String, dynamic>)['last_updated'].compareTo(
-                      (b.data() as Map<String, dynamic>)['last_updated']));
-              sortedTitles = documents
-                  .map((document) =>
-                      (document.data() as Map<String, dynamic>)['title'])
-                  .toList()
-                  .cast<String>();
-            }
 
             return ListView(
-              children: sortedTitles.map((String title) {
-                QueryDocumentSnapshot document = snapshot.data!.docs.firstWhere(
-                  (doc) =>
-                      (doc.data() as Map<String, dynamic>)['title'] == title,
-                );
-
+              children: snapshot.data!.docs.map((DocumentSnapshot document) {
                 Map<String, dynamic> data =
                     document.data() as Map<String, dynamic>;
 
                 return ListTile(
-                  title: Text(title),
+                  title: Text(data['title']),
                   onTap: () {
                     Navigator.push(
                       context,

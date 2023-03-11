@@ -1,4 +1,3 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 
 import 'userdata.dart';
@@ -8,7 +7,6 @@ import 'filedata.dart';
 class Firebasedynamiclink {
   static Future<String> myDynamiclink(
       FileData fileData, UserData userData) async {
-    final user = FirebaseAuth.instance.currentUser;
     final dynamicLinkParams = DynamicLinkParameters(
       link: Uri.parse(
           "https://www.starkmarkdown.com/users/?uid=${userData.uid}&fid=${fileData.fid}"),
@@ -23,7 +21,7 @@ class Firebasedynamiclink {
       shortLinkType: ShortDynamicLinkType.unguessable,
     );
     final Uri url = shortLink.shortUrl;
-    String _shortLink = url.toString();
-    return _shortLink;
+    String shortlink = url.toString();
+    return shortlink;
   }
 }

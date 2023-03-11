@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter_markdown/flutter_markdown.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'Markdown_parser.dart';
 import 'package:uuid/uuid.dart';
 
 class MarkdownNew extends StatefulWidget {
@@ -19,12 +20,14 @@ class _MarkdownNewState extends State<MarkdownNew> {
   late TextEditingController _titleController;
   String previewdata = '';
   bool showpreview = false;
-
+  bool isDarkMode = false;
+  late SharedPreferences _prefs;
   @override
   void initState() {
     super.initState();
     _controller = TextEditingController(text: widget.initialValue);
     _titleController = TextEditingController(text: widget.title);
+    _loadTheme();
   }
 
   @override
@@ -32,6 +35,13 @@ class _MarkdownNewState extends State<MarkdownNew> {
     _controller.dispose();
     _titleController.dispose();
     super.dispose();
+  }
+
+  void _loadTheme() async {
+    _prefs = await SharedPreferences.getInstance();
+    setState(() {
+      isDarkMode = _prefs.getBool('isDarkMode') ?? false;
+    });
   }
 
   void savenewMarkdown() async {
@@ -211,7 +221,7 @@ class _MarkdownNewState extends State<MarkdownNew> {
                         ),
                       if (showpreview)
                         Expanded(
-                          child: Markdown(data: previewdata),
+                          child: MarkdownParser(data: previewdata),
                         ),
                     ],
                   ),

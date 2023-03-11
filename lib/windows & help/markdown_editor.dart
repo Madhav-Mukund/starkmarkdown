@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'Markdown_parser.dart';
 
 class MarkdownEditor extends StatefulWidget {
   final String initialValue;
@@ -20,26 +22,35 @@ class _MarkdownEditorState extends State<MarkdownEditor> {
   late TextEditingController _titleController;
   bool showpreview = false;
   String previewdata = "";
-
+  String? initial;
+  bool isDarkMode = false;
+  late SharedPreferences _prefs;
   @override
   void initState() {
     super.initState();
     _controller = TextEditingController(text: widget.initialValue);
     _titleController = TextEditingController(text: widget.title);
+    initial = _controller.text;
+    _loadTheme();
+  }
+
+  void _loadTheme() async {
+    _prefs = await SharedPreferences.getInstance();
+    setState(() {
+      isDarkMode = _prefs.getBool('isDarkMode') ?? false;
+    });
   }
 
   @override
   void dispose() {
+    saveMarkdown();
     _controller.dispose();
     _titleController.dispose();
     super.dispose();
   }
 
-  void saveMarkdown() {
-    _saveFile(context);
-  }
-
-  void _saveFile(BuildContext context) async {
+  void saveMarkdown() async {
+    if (!mounted) return;
     final title = _titleController.text.trim();
     final content = _controller.text.trim();
     final user = FirebaseAuth.instance.currentUser;
@@ -69,7 +80,7 @@ class _MarkdownEditorState extends State<MarkdownEditor> {
   Widget build(BuildContext context) {
     return WillPopScope(
         onWillPop: () async {
-          if (_controller.text.isNotEmpty) {
+          if (initial != _controller.text) {
             final result = await showDialog<bool>(
               context: context,
               builder: (context) => AlertDialog(
@@ -78,29 +89,36 @@ class _MarkdownEditorState extends State<MarkdownEditor> {
                     'All changes made will be lost. Do you want to save the changes?'),
                 actions: [
                   TextButton(
-                    onPressed: () => Navigator.pop(context, true),
-                    child: const Text('Save'),
-                  ),
-                  TextButton(
-                    onPressed: () => Navigator.pop(context, false),
+                    onPressed: () {
+                      Navigator.pop(context, false);
+                    },
                     child: const Text('Cancel'),
                   ),
+                  TextButton(
+                    onPressed: () {
+                      Navigator.pop(context, true);
+                    },
+                    child: const Text('Exit without saving'),
+                  ),
+                  TextButton(
+                    onPressed: () {
+                      saveMarkdown();
+                      Navigator.pop(context, true);
+                    },
+                    child: const Text('Save & Exit'),
+                  )
                 ],
               ),
             );
 
-            if (result == true) {
-              saveMarkdown();
-            } else {
-              return true;
-            }
+            return result ?? true;
           }
 
           return true;
         },
         child: Scaffold(
           appBar: AppBar(
-            title: const Text("Live Markdown Editor"),
+            title: const Text("Markdown Editor"),
             actions: [
               IconButton(
                 onPressed: () {
@@ -134,8 +152,6 @@ class _MarkdownEditorState extends State<MarkdownEditor> {
                   border: Border.all(width: 1, color: Colors.grey),
                 ),
                 child: TextField(
-                  style:
-                      const TextStyle(color: Color.fromARGB(180, 45, 45, 45)),
                   controller: _titleController,
                   readOnly: true,
                   decoration: const InputDecoration(
@@ -171,7 +187,7 @@ class _MarkdownEditorState extends State<MarkdownEditor> {
                         ),
                       if (showpreview)
                         Container(
-                          alignment: Alignment.center,
+                          alignment: Alignment.bottomLeft,
                           padding: const EdgeInsets.symmetric(horizontal: 16),
                           child: const Text(
                             "Preview",
@@ -185,7 +201,7 @@ class _MarkdownEditorState extends State<MarkdownEditor> {
                         ),
                       if (showpreview)
                         Expanded(
-                          child: Markdown(data: previewdata),
+                          child: MarkdownParser(data: previewdata),
                         ),
                     ],
                   ),

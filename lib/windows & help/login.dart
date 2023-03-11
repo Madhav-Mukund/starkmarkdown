@@ -1,3 +1,5 @@
+// ignore_for_file: library_private_types_in_public_api
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -24,6 +26,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController passwordController = TextEditingController();
   final _auth = FirebaseAuth.instance;
   final _googleSignIn = GoogleSignIn();
+  bool visible = true;
 
   String? errorMessage;
 
@@ -59,7 +62,7 @@ class _LoginScreenState extends State<LoginScreen> {
     final passwordField = TextFormField(
         autofocus: false,
         controller: passwordController,
-        obscureText: true,
+        obscureText: visible,
         validator: (value) {
           RegExp regex = RegExp(r'^.{6,}$');
           if (value!.isEmpty) {
@@ -75,13 +78,23 @@ class _LoginScreenState extends State<LoginScreen> {
         },
         textInputAction: TextInputAction.done,
         decoration: InputDecoration(
-          prefixIcon: const Icon(Icons.vpn_key),
-          contentPadding: const EdgeInsets.fromLTRB(20, 15, 20, 15),
-          hintText: "Password",
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
-        ));
+            prefixIcon: const Icon(Icons.vpn_key),
+            contentPadding: const EdgeInsets.fromLTRB(20, 15, 20, 15),
+            hintText: "Password",
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+            suffixIcon: IconButton(
+              onPressed: () {
+                setState(() {
+                  visible = !visible;
+                });
+              },
+              icon: Icon(
+                visible ? Icons.visibility_off : Icons.visibility,
+                color: Colors.grey,
+              ),
+            )));
 
     final loginButton = Material(
       elevation: 5,
@@ -140,9 +153,9 @@ class _LoginScreenState extends State<LoginScreen> {
 
     return Scaffold(
       backgroundColor: Colors.white,
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(36),
+      body: Padding(
+        padding: EdgeInsets.only(left: 40, right: 40, top: 150),
+        child: SingleChildScrollView(
           child: Form(
             key: _formKey,
             child: Column(
@@ -150,7 +163,7 @@ class _LoginScreenState extends State<LoginScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
                 SizedBox(
-                  height: 155,
+                  height: 200,
                   child: Image.asset(
                     "images/icon.png",
                     fit: BoxFit.contain,
@@ -237,6 +250,17 @@ class _LoginScreenState extends State<LoginScreen> {
 
         userModel.firstName = firstname;
         userModel.secondName = secondname;
+        DocumentSnapshot userDoc =
+            await firebaseFirestore.collection("users").doc(user.uid).get();
+        if (userDoc.exists) {
+          await saveUser(user.uid);
+          Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(builder: (context) => HomeScreen()),
+            (route) => false,
+          );
+          return;
+        }
         final newFileId = Uuid().v4();
 
         await firebaseFirestore
@@ -253,6 +277,8 @@ class _LoginScreenState extends State<LoginScreen> {
           "title": "Demo_file",
           "file_content": "My markdown is weak",
           "last_updated": Timestamp.now(),
+          "created_at": Timestamp.now(),
+          "FileArrays": ['My', 'markdown', 'is', 'weak']
         });
         await saveUser(userCredential.user!.uid);
         Navigator.pushAndRemoveUntil(

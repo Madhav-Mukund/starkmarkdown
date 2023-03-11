@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'userdata.dart';
 import 'markdown_editor.dart';
 
@@ -9,7 +10,7 @@ class SearchScreenData {
   bool filterByDate = false;
   DateTime? startDate;
   DateTime? endDate;
-  String? Searchtext;
+  String? msearchtext;
   String searchincontent = '';
   bool searchisincontent = false;
 }
@@ -26,19 +27,29 @@ class _SearchScreenState extends State<SearchScreen> {
   late User? _user;
   List<DocumentSnapshot> _searchResults = [];
   UserData _loggedInUser = UserData();
-  String searchtext = '';
-
+  String msearchtext = '';
+  String ksearchtext = '';
   SearchScreenData _data = SearchScreenData();
   String? _selectedFilterOption;
   TextEditingController _startDateController = TextEditingController();
   TextEditingController _endDateController = TextEditingController();
   TextEditingController _keywordsController = TextEditingController();
+  bool isDarkMode = false;
+  late SharedPreferences _prefs;
 
   @override
   void initState() {
     super.initState();
     _user = FirebaseAuth.instance.currentUser;
     _loadUserData();
+    _loadTheme();
+  }
+
+  void _loadTheme() async {
+    _prefs = await SharedPreferences.getInstance();
+    setState(() {
+      isDarkMode = _prefs.getBool('isDarkMode') ?? false;
+    });
   }
 
   void _loadUserData() async {
@@ -53,56 +64,60 @@ class _SearchScreenState extends State<SearchScreen> {
     }
   }
 
-  void _searchFiles(String searchText, bool f, bool s) async {
-    if (searchText.isNotEmpty) {
-      Query query = FirebaseFirestore.instance
-          .collection('users')
-          .doc(_user!.uid)
-          .collection('files')
+  void _searchFiles(String msearchtext, bool f, String searchText) async {
+    List<QueryDocumentSnapshot<Object?>> resultList = [];
+    var collectionRef = FirebaseFirestore.instance
+        .collection('users')
+        .doc(_user!.uid)
+        .collection('files');
+    if (msearchtext.isNotEmpty) {
+      Query query = collectionRef
           .orderBy('title')
-          .startAt([searchText]).endAt(['$searchText\uf8ff']);
+          .startAt([msearchtext]).endAt(['$msearchtext\uf8ff']);
       QuerySnapshot querySnapshot = await query.get();
-      List<QueryDocumentSnapshot<Object?>> filteredDocs =
+      List<QueryDocumentSnapshot<Object?>> titledoc =
           querySnapshot.docs.toList();
-      if (f) {
-        if (_data.startDate != null) {
-          filteredDocs = filteredDocs.where((doc) {
-            final createdAt = doc.get('created_at') as Timestamp;
-            final createdAtDateTime = createdAt.toDate();
-            return createdAtDateTime.isAfter(_data.startDate!);
-          }).toList();
-        }
-        if (_data.endDate != null) {
-          filteredDocs = filteredDocs.where((doc) {
-            final createdAt = doc.get('created_at') as Timestamp;
-            final createdAtDateTime = createdAt.toDate();
-            return createdAtDateTime.isBefore(_data.endDate!);
-          }).toList();
-        } // convert the filtered iterable back to a list
-      }
-
-      List<QueryDocumentSnapshot> results = filteredDocs;
-
-      if (s) {
-        List<String> filearrays = searchText.split(' ');
-
-        List<QueryDocumentSnapshot> contentResults =
-            await _searchFilesContent(filearrays);
-
-        results.addAll(contentResults.toSet().toList());
-      }
-
-      setState(() {
-        _searchResults = results;
-
-        searchtext = searchText;
-      });
-    } else {
-      setState(() {
-        _searchResults = [];
-        searchtext = searchText;
-      });
+      resultList.addAll(titledoc);
     }
+    print('data');
+
+    if (f) {
+      List<QueryDocumentSnapshot<Object?>> dateList = [];
+
+      if (_data.startDate != null) {
+        Query queryd = collectionRef.where('created_at',
+            isGreaterThanOrEqualTo: _data.startDate);
+        QuerySnapshot querySnapshotsd = await queryd.get();
+        List<QueryDocumentSnapshot<Object?>> datedocsd =
+            querySnapshotsd.docs.toList();
+        dateList.addAll(datedocsd);
+      }
+      if (_data.endDate != null) {
+        Query queryed = collectionRef.where('created_at',
+            isLessThanOrEqualTo: _data.endDate);
+        print(_data.endDate);
+        QuerySnapshot querySnapshoted = await queryed.get();
+        List<QueryDocumentSnapshot<Object?>> datedoced =
+            querySnapshoted.docs.toList();
+        dateList.addAll(datedoced);
+      }
+      resultList.addAll(dateList);
+    }
+
+    List<QueryDocumentSnapshot> results = resultList;
+
+    if (searchText.isNotEmpty) {
+      List<String> filearrays = searchText.split(' ');
+
+      List<QueryDocumentSnapshot> contentResults =
+          await _searchFilesContent(filearrays);
+
+      results.addAll(contentResults.toSet().toList());
+    }
+
+    setState(() {
+      _searchResults = results;
+    });
   }
 
   Future<List<QueryDocumentSnapshot>> _searchFilesContent(
@@ -133,16 +148,15 @@ class _SearchScreenState extends State<SearchScreen> {
                 hintText: 'Search',
               ),
               onChanged: (value) {
-                _searchFiles(
-                    value, _data.filterByDate, _data.searchisincontent);
+                _searchFiles(value, _data.filterByDate, ksearchtext);
               },
             ),
           ),
           Row(
             children: [
               const Text(
-                'Filter By:',
-                style: TextStyle(fontSize: 20.0),
+                'Options:',
+                style: TextStyle(fontSize: 18.0),
               ),
               Expanded(
                 child: Padding(
@@ -173,15 +187,8 @@ class _SearchScreenState extends State<SearchScreen> {
                   padding: const EdgeInsets.only(left: 8.0),
                   child: ElevatedButton(
                     onPressed: () {
-                      String? Searchquery;
-                      if (searchtext != '') {
-                        Searchquery = searchtext;
-                        _data.searchisincontent = true;
-                      } else {
-                        Searchquery = _searchController.text;
-                      }
-                      _searchFiles(Searchquery, _data.filterByDate,
-                          _data.searchisincontent);
+                      _searchFiles(
+                          msearchtext, _data.filterByDate, ksearchtext);
                     },
                     child: const Text('Search'),
                   ),
@@ -280,22 +287,38 @@ class _SearchScreenState extends State<SearchScreen> {
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 8.0),
                     child: TextFormField(
-                        controller: _keywordsController,
-                        decoration: InputDecoration(
-                          labelText: 'Keywords',
-                          hintText:
-                              'Enter keywords seperated by comma(Upto 10)',
-                          suffixIcon: IconButton(
-                            icon: const Icon(Icons.clear),
-                            onPressed: () {
-                              _keywordsController.clear();
-                              _data.searchisincontent = false;
-                            },
-                          ),
+                      controller: _keywordsController,
+                      decoration: InputDecoration(
+                        labelText: 'Keywords',
+                        hintText:
+                            'Enter keywords separated by comma (up to 10)',
+                        suffixIcon: IconButton(
+                          icon: const Icon(Icons.clear),
+                          onPressed: () {
+                            _keywordsController.clear();
+                          },
                         ),
-                        onChanged: (value) {
-                          searchtext = _keywordsController.text;
-                        }),
+                      ),
+                      onChanged: (value) {
+                        List<String> keywords =
+                            _keywordsController.text.split(',');
+                        if (keywords.length > 10) {
+                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                            content: Text('Please enter up to 10 keywords'),
+                          ));
+
+                          String newKeywords =
+                              keywords.sublist(0, 10).join(',');
+                          _keywordsController.value = TextEditingValue(
+                            text: newKeywords,
+                            selection: TextSelection.collapsed(
+                                offset: newKeywords.length),
+                          );
+                        } else {
+                          ksearchtext = _keywordsController.text;
+                        }
+                      },
+                    ),
                   ),
                 ),
               ],

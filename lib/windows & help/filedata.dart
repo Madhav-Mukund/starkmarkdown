@@ -7,7 +7,6 @@ class FileData {
 
   FileData({this.fid, this.title, this.file_content});
 
-  // receiving data from server
   factory FileData.fromMap(map) {
     return FileData(
       fid: map['fid'],
@@ -16,7 +15,6 @@ class FileData {
     );
   }
 
-  // getting data from firestore
   factory FileData.fromFirestore(DocumentSnapshot snapshot) {
     Map<String, dynamic> data = snapshot.data() as Map<String, dynamic>;
     return FileData(

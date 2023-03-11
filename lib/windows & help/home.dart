@@ -187,8 +187,6 @@ class _HomeScreenState extends State<HomeScreen> {
                       ? NetworkImage(_loggedInUser.profileImageUrl!)
                       : AssetImage('images/default_profile.png')
                           as ImageProvider,
-                  child:
-                      _loggedInUser == null ? Icon(Icons.account_circle) : null,
                 ),
               ),
               SizedBox(width: 10),

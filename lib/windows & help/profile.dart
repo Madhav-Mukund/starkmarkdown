@@ -77,143 +77,148 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final themeProvider = Provider.of<ThemeProvider>(context);
     return Scaffold(
       appBar: AppBar(
-        title: Text('Profile'),
+        title: const Text('Profile'),
       ),
       body: _isLoading
-          ? Center(
+          ? const Center(
               child: CircularProgressIndicator(),
             )
-          : Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  CircleAvatar(
-                    radius: 60,
-                    backgroundImage: _loggedInUser!.profileImageUrl != null
-                        ? NetworkImage(_loggedInUser!.profileImageUrl!)
-                        : AssetImage('images/default_profile.png')
-                            as ImageProvider,
-                    child: GestureDetector(
-                      onTap: () {
-                        showDialog(
-                          context: context,
-                          builder: (BuildContext context) {
-                            return AlertDialog(
-                              title: Text("Select a new profile image"),
-                              actions: <Widget>[
-                                TextButton(
-                                  child: Text("CANCEL"),
-                                  onPressed: () {
-                                    Navigator.of(context).pop();
-                                  },
-                                ),
-                                TextButton(
-                                  child: Text("GALLERY"),
-                                  onPressed: () async {
-                                    final XFile? selectedImage =
-                                        await ImagePicker().pickImage(
-                                      source: ImageSource.gallery,
-                                    );
-                                    final ref = FirebaseStorage.instance
-                                        .ref()
-                                        .child(
-                                            'users/${_loggedInUser!.uid}/profileimage');
-                                    final file = File(selectedImage!.path);
-                                    await ref.putFile(file);
-                                    final String profileImageUrl =
-                                        await ref.getDownloadURL();
-                                    await FirebaseFirestore.instance
-                                        .collection('users')
-                                        .doc(_loggedInUser!.uid)
-                                        .update({
-                                      'profileImageUrl': profileImageUrl,
-                                    });
-                                    Navigator.of(context).pop();
-                                  },
-                                ),
-                                TextButton(
-                                  child: Text("CAMERA"),
-                                  onPressed: () async {
-                                    final XFile? selectedImage =
-                                        await ImagePicker().pickImage(
-                                      source: ImageSource.camera,
-                                    );
-                                    final ref = FirebaseStorage.instance
-                                        .ref()
-                                        .child(
-                                            'users/${_loggedInUser!.uid}/profileimage');
-                                    final file = File(selectedImage!.path);
-                                    await ref.putFile(file);
-                                    final String profileImageUrl =
-                                        await ref.getDownloadURL();
-                                    await FirebaseFirestore.instance
-                                        .collection('users')
-                                        .doc(_loggedInUser!.uid)
-                                        .update({
-                                      'profileImageUrl': profileImageUrl,
-                                    });
-                                    Navigator.of(context).pop();
-                                  },
-                                ),
-                              ],
-                            );
-                          },
-                        );
-                      },
-                    ),
-                  ),
-                  SizedBox(height: 20),
-                  TextField(
-                    controller: _firstNameController,
-                    decoration: InputDecoration(
-                      labelText: 'First Name',
-                    ),
-                  ),
-                  SizedBox(height: 10),
-                  TextField(
-                    controller: _lastNameController,
-                    decoration: InputDecoration(
-                      labelText: 'Last Name',
-                    ),
-                  ),
-                  SizedBox(height: 10),
-                  TextField(
-                    controller: _emailController,
-                    decoration: InputDecoration(
-                      labelText: 'Email',
-                    ),
-                  ),
-                  Spacer(),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        'Switch modes:',
-                        style: GoogleFonts.lato(fontSize: 18),
-                      ),
-                      IconButton(
-                        onPressed: () {
-                          setState(() {
-                            themeProvider.toggleTheme(IsDarkmode);
-                            IsDarkmode = !IsDarkmode;
-                          });
+          : SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  children: [
+                    CircleAvatar(
+                      radius: 60,
+                      backgroundImage: _loggedInUser!.profileImageUrl != null
+                          ? NetworkImage(_loggedInUser!.profileImageUrl!,
+                              scale: 0.1)
+                          : const AssetImage('images/default_profile.png')
+                              as ImageProvider,
+                      child: GestureDetector(
+                        onTap: () {
+                          showDialog(
+                            context: context,
+                            builder: (BuildContext context) {
+                              return AlertDialog(
+                                title: const Text("Select a new profile image"),
+                                actions: <Widget>[
+                                  TextButton(
+                                    child: const Text("Cancel"),
+                                    onPressed: () {
+                                      Navigator.of(context).pop();
+                                    },
+                                  ),
+                                  TextButton(
+                                    child: const Text("Gallery"),
+                                    onPressed: () async {
+                                      final XFile? selectedImage =
+                                          await ImagePicker().pickImage(
+                                        source: ImageSource.gallery,
+                                      );
+                                      final ref = FirebaseStorage.instance
+                                          .ref()
+                                          .child(
+                                              'users/${_loggedInUser!.uid}/profileimage');
+                                      final file = File(selectedImage!.path);
+                                      await ref.putFile(file);
+                                      final String profileImageUrl =
+                                          await ref.getDownloadURL();
+                                      await FirebaseFirestore.instance
+                                          .collection('users')
+                                          .doc(_loggedInUser!.uid)
+                                          .update({
+                                        'profileImageUrl': profileImageUrl,
+                                      });
+                                      Navigator.of(context).pop();
+                                    },
+                                  ),
+                                  TextButton(
+                                    child: const Text("Camera"),
+                                    onPressed: () async {
+                                      final XFile? selectedImage =
+                                          await ImagePicker().pickImage(
+                                        source: ImageSource.camera,
+                                      );
+                                      final ref = FirebaseStorage.instance
+                                          .ref()
+                                          .child(
+                                              'users/${_loggedInUser!.uid}/profileimage');
+                                      final file = File(selectedImage!.path);
+                                      await ref.putFile(file);
+                                      final String profileImageUrl =
+                                          await ref.getDownloadURL();
+                                      await FirebaseFirestore.instance
+                                          .collection('users')
+                                          .doc(_loggedInUser!.uid)
+                                          .update({
+                                        'profileImageUrl': profileImageUrl,
+                                      });
+                                      Navigator.of(context).pop();
+                                    },
+                                  ),
+                                ],
+                              );
+                            },
+                          );
                         },
-                        icon: themeProvider.isDarkModeEnabled
-                            ? Icon(Icons.brightness_medium_outlined)
-                            : Icon(Icons.brightness_medium),
                       ),
-                    ],
-                  ),
-                  ElevatedButton(
-                    onPressed: updateUserData,
-                    child: Text('Update Profile'),
-                  ),
-                  ElevatedButton(
-                    onPressed: () => logout(context),
-                    child: Text('Logout'),
-                  ),
-                ],
+                    ),
+                    const SizedBox(height: 20),
+                    TextField(
+                      controller: _firstNameController,
+                      decoration: const InputDecoration(
+                        labelText: 'First Name',
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    TextField(
+                      controller: _lastNameController,
+                      decoration: const InputDecoration(
+                        labelText: 'Last Name',
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    TextField(
+                      controller: _emailController,
+                      readOnly: true,
+                      decoration: const InputDecoration(
+                        labelText: 'Email',
+                      ),
+                    ),
+                    const SizedBox(
+                      height: 40,
+                    ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          'Switch modes:',
+                          style: GoogleFonts.lato(fontSize: 18),
+                        ),
+                        IconButton(
+                          onPressed: () {
+                            setState(() {
+                              themeProvider.toggleTheme(IsDarkmode);
+                              IsDarkmode = !IsDarkmode;
+                            });
+                          },
+                          icon: themeProvider.isDarkModeEnabled
+                              ? const Icon(Icons.brightness_medium_outlined)
+                              : const Icon(Icons.brightness_medium),
+                        ),
+                      ],
+                    ),
+                    ElevatedButton(
+                      onPressed: updateUserData,
+                      child: const Text('Update Profile'),
+                    ),
+                    ElevatedButton(
+                      onPressed: () => logout(context),
+                      child: const Text('Logout'),
+                    ),
+                  ],
+                ),
               ),
             ),
     );
@@ -237,7 +242,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         _isLoading = false;
       });
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Profile updated successfully')),
+        const SnackBar(content: Text('Profile updated successfully')),
       );
     } catch (e) {
       print(e);
@@ -245,7 +250,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         _isLoading = false;
       });
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to update profile')),
+        const SnackBar(content: Text('Failed to update profile')),
       );
     }
   }
@@ -255,23 +260,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text("Logout"),
-          content: Text("Are you sure you want to logout?"),
+          title: const Text("Logout"),
+          content: const Text("Are you sure you want to logout?"),
           actions: [
             TextButton(
-              child: Text("Cancel"),
+              child: const Text("Cancel"),
               onPressed: () {
                 Navigator.pop(context);
               },
             ),
             TextButton(
-              child: Text("Logout"),
+              child: const Text("Logout"),
               onPressed: () async {
                 await FirebaseAuth.instance.signOut();
                 _setIsLoggedIn(false);
                 Navigator.pushAndRemoveUntil(
                   context,
-                  MaterialPageRoute(builder: (context) => LoginScreen()),
+                  MaterialPageRoute(builder: (context) => const LoginScreen()),
                   (route) => false,
                 );
               },

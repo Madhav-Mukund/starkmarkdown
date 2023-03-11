@@ -42,14 +42,6 @@ class _SearchScreenState extends State<SearchScreen> {
     super.initState();
     _user = FirebaseAuth.instance.currentUser;
     _loadUserData();
-    _loadTheme();
-  }
-
-  void _loadTheme() async {
-    _prefs = await SharedPreferences.getInstance();
-    setState(() {
-      isDarkMode = _prefs.getBool('isDarkMode') ?? false;
-    });
   }
 
   void _loadUserData() async {
@@ -79,7 +71,6 @@ class _SearchScreenState extends State<SearchScreen> {
           querySnapshot.docs.toList();
       resultList.addAll(titledoc);
     }
-    print('data');
 
     if (f) {
       List<QueryDocumentSnapshot<Object?>> dateList = [];
@@ -148,7 +139,7 @@ class _SearchScreenState extends State<SearchScreen> {
                 hintText: 'Search',
               ),
               onChanged: (value) {
-                _searchFiles(value, _data.filterByDate, ksearchtext);
+                msearchtext = value;
               },
             ),
           ),

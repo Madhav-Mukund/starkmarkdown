@@ -47,7 +47,7 @@ jobs:
       id: add_to_release
       uses: actions/upload-release-asset@v1
       env:
-        GITHUB_TOKEN: ${{ secrets.APP_TOKEN }}
+        GITHUB_TOKEN: ${{secrets.APP_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
         asset_path: ${{ steps.upload_apk.outputs.artifact_path }}

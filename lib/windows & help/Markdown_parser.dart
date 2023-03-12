@@ -120,7 +120,8 @@ class MarkdownParser extends StatelessWidget {
 
   Widget image(String data) {
     final String alt = data.substring(data.indexOf('[') + 1, data.indexOf(']'));
-    final String url = data.substring(data.indexOf('(') + 1, data.indexOf(')'));
+    final String url =
+        data.substring(data.indexOf('(') + 1, data.lastIndexOf(')'));
 
     return Image.network(url, semanticLabel: alt);
   }
@@ -128,55 +129,25 @@ class MarkdownParser extends StatelessWidget {
   Widget paragraph(String data) {
     final List<TextSpan> textSpans = [];
 
-    final RegExp bold = RegExp(r'\*\*(.*?)\*\*');
-    final RegExp italic = RegExp(r'\*(.*?)\*');
-    final RegExp under = RegExp(r'_([^_]+)_');
-    final RegExp strike = RegExp(r'~~(.*?)~~');
+    final RegExp allreg = RegExp(r'(\*\*|__|\*|_|\~\~)(.*?)\1');
 
-    List<String> splitData = data.split(bold);
-    for (int i = 0; i < splitData.length; i++) {
-      String text = splitData[i];
-      if (i % 2 == 1) {
-        textSpans.add(TextSpan(
-          text: text,
-          style: GoogleFonts.lato(fontWeight: FontWeight.bold),
-        ));
+    int i = 0;
+    while (i < data.length) {
+      final match = allreg.firstMatch(data.substring(i));
+      if (match == null) {
+        textSpans.add(TextSpan(text: data.substring(i)));
+        break;
       } else {
-        List<String> splititalic = text.split(italic);
-        for (int j = 0; j < splititalic.length; j++) {
-          String italic = splititalic[j];
-          if (j % 2 == 1) {
-            textSpans.add(TextSpan(
-              text: italic,
-              style: GoogleFonts.lato(fontStyle: FontStyle.italic),
-            ));
-          } else {
-            List<String> splitunder = italic.split(under);
-            for (int k = 0; k < splitunder.length; k++) {
-              String under = splitunder[k];
-              if (k % 2 == 1) {
-                textSpans.add(TextSpan(
-                  text: under,
-                  style: GoogleFonts.lato(decoration: TextDecoration.underline),
-                ));
-              } else {
-                List<String> splitstrike = under.split(strike);
-                for (int l = 0; l < splitstrike.length; l++) {
-                  String strike = splitstrike[l];
-                  if (l % 2 == 1) {
-                    textSpans.add(TextSpan(
-                      text: strike,
-                      style: GoogleFonts.lato(
-                          decoration: TextDecoration.lineThrough),
-                    ));
-                  } else {
-                    textSpans.add(TextSpan(text: strike));
-                  }
-                }
-              }
-            }
-          }
+        if (match.start > 0) {
+          textSpans.add(TextSpan(text: data.substring(i, i + match.start)));
         }
+
+        final String marker = match.group(1)!;
+        final String text = match.group(2)!;
+        final TextStyle style = textstyle(marker);
+
+        textSpans.add(TextSpan(text: text, style: style));
+        i += match.start + match.group(0)!.length;
       }
     }
 
@@ -186,5 +157,20 @@ class MarkdownParser extends StatelessWidget {
       textAlign: TextAlign.justify,
       style: GoogleFonts.lato(fontSize: 16),
     );
+  }
+
+  TextStyle textstyle(String marker) {
+    switch (marker) {
+      case '**':
+      case '__':
+        return GoogleFonts.lato(fontWeight: FontWeight.bold);
+      case '*':
+      case '_':
+        return GoogleFonts.lato(fontStyle: FontStyle.italic);
+      case '~~':
+        return GoogleFonts.lato(decoration: TextDecoration.lineThrough);
+      default:
+        return TextStyle();
+    }
   }
 }

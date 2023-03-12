@@ -74,7 +74,7 @@ class _MarkdownNewState extends State<MarkdownNew> {
 
     if (user == null) return;
 
-    final title = titlecontroller.text.trim();
+    String title = titlecontroller.text.trim();
     if (title.isEmpty) return;
 
     final fileContent = controller.text.trim();
@@ -86,9 +86,22 @@ class _MarkdownNewState extends State<MarkdownNew> {
         .doc(user.uid)
         .collection('files');
 
+    QuerySnapshot<Map<String, dynamic>> snapshot =
+        await filesRef.where('title', isEqualTo: title).get();
+    if (snapshot.docs.isNotEmpty) {
+      int count = 1;
+      String newTitle;
+      do {
+        newTitle = '$title($count)';
+        count++;
+        snapshot = await filesRef.where('title', isEqualTo: newTitle).get();
+        title = newTitle;
+      } while (snapshot.docs.isNotEmpty);
+      titlecontroller.text = newTitle;
+    }
+
     final newFileId = const Uuid().v4();
     List<String> filearrays = fileContent.split(' ');
-
     await filesRef.doc(newFileId).set({
       'fid': newFileId,
       'title': title,

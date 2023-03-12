@@ -38,6 +38,10 @@ class _HomeScreenState extends State<HomeScreen> {
   bool sortboolby = false;
   List<String> sortedTitles = [];
   bool isDarkMode = false;
+  bool s1 = false;
+  bool s2 = false;
+  bool s3 = false;
+  List<bool> selected = [false, false, false];
 
   @override
   void initState() {
@@ -141,18 +145,15 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _mysortfunction(String value) {
-    if (value == 'titleAscending') {
+    if (value == 'title') {
       sortby = 'title';
-      sortboolby = false;
-    } else if (value == 'titleDescending') {
-      sortby = 'title';
-      sortboolby = true;
-    } else if (value == 'dateModifiedAscending') {
+      s1 = !s1;
+    } else if (value == 'dateModified') {
       sortby = 'last_updated';
-      sortboolby = false;
-    } else if (value == 'dateModifiedDescending') {
-      sortby = 'last_updated';
-      sortboolby = true;
+      s2 = !s2;
+    } else if (value == 'datecreated') {
+      sortby = 'created_at';
+      s3 = !s3;
     }
   }
 
@@ -212,109 +213,61 @@ class _HomeScreenState extends State<HomeScreen> {
               },
               icon: Icon(Icons.search),
             ),
-            PopupMenuButton(
-              onSelected: (value) {
-                setState(() {
-                  _sortBy = value;
-                  _mysortfunction(_sortBy);
+            IconButton(
+              icon: Icon(Icons.sort),
+              onPressed: () {
+                showMenu<String>(
+                  context: context,
+                  position: RelativeRect.fromLTRB(25.0, 50.0, 0.0, 0.0),
+                  items: [
+                    PopupMenuItem(
+                      value: 'title',
+                      child: Row(
+                        children: [
+                          Text('Title : ' + (s1 ? '(A-Z)' : '(Z-A)')),
+                          SizedBox(width: 8),
+                          selected[0] ? Icon(Icons.check) : SizedBox(width: 0),
+                        ],
+                      ),
+                    ),
+                    PopupMenuItem(
+                      value: 'dateModified',
+                      child: Row(
+                        children: [
+                          Text('Date Modified'),
+                          Icon(s2 ? Icons.arrow_downward : Icons.arrow_upward),
+                          SizedBox(width: 8),
+                          selected[1] ? Icon(Icons.check) : SizedBox(width: 0),
+                        ],
+                      ),
+                    ),
+                    PopupMenuItem(
+                      value: 'datecreated',
+                      child: Row(
+                        children: [
+                          Text('Date Created'),
+                          Icon(s3 ? Icons.arrow_downward : Icons.arrow_upward),
+                          SizedBox(width: 8),
+                          selected[2] ? Icon(Icons.check) : SizedBox(width: 0),
+                        ],
+                      ),
+                    ),
+                  ],
+                ).then((value) {
+                  setState(() {
+                    _sortBy = value!;
+                    _mysortfunction(_sortBy);
+                    selected = [false, false, false];
+                    if (_sortBy == 'title') {
+                      selected[0] = true;
+                    } else if (_sortBy == 'dateModified') {
+                      selected[1] = true;
+                    } else if (_sortBy == 'datecreated') {
+                      selected[2] = true;
+                    }
+                  });
                 });
               },
-              itemBuilder: (BuildContext context) => [
-                PopupMenuItem(
-                  value: 'titleAscending',
-                  child: Row(
-                    children: [
-                      Icon(Icons.sort_by_alpha),
-                      SizedBox(width: 8),
-                      Text('Sort by title (A-Z)'),
-                    ],
-                  ),
-                ),
-                PopupMenuItem(
-                  value: 'titleDescending',
-                  child: Row(
-                    children: [
-                      Icon(Icons.sort_by_alpha),
-                      SizedBox(width: 8),
-                      Text('Sort by title (Z-A)'),
-                    ],
-                  ),
-                ),
-                PopupMenuItem(
-                  value: 'dateModifiedAscending',
-                  child: Row(
-                    children: [
-                      Icon(Icons.calendar_today),
-                      SizedBox(width: 8),
-                      Text('Sort by date modified (oldest first)'),
-                    ],
-                  ),
-                ),
-                PopupMenuItem(
-                  value: 'dateModifiedDescending',
-                  child: Row(
-                    children: [
-                      Icon(Icons.calendar_today),
-                      SizedBox(width: 8),
-                      Text('Sort by date modified (newest first)'),
-                    ],
-                  ),
-                ),
-              ],
-              child: IconButton(
-                icon: Icon(Icons.sort),
-                onPressed: () {
-                  showMenu<String>(
-                    context: context,
-                    position: RelativeRect.fromLTRB(25.0, 50.0, 0.0, 0.0),
-                    items: [
-                      PopupMenuItem(
-                        value: 'titleAscending',
-                        child: Row(
-                          children: [
-                            Text('Title (A-Z)'),
-                            SizedBox(width: 8),
-                          ],
-                        ),
-                      ),
-                      PopupMenuItem(
-                        value: 'titleDescending',
-                        child: Row(
-                          children: [
-                            Text('Title (Z-A)'),
-                            SizedBox(width: 8),
-                          ],
-                        ),
-                      ),
-                      PopupMenuItem(
-                        value: 'dateModifiedAscending',
-                        child: Row(
-                          children: [
-                            Text('Date Modified'),
-                            Icon(Icons.arrow_downward),
-                            SizedBox(width: 8),
-                          ],
-                        ),
-                      ),
-                      PopupMenuItem(
-                        value: 'dateModifiedDescending',
-                        child: Row(
-                          children: [
-                            Text('Date Modified'),
-                            Icon(Icons.arrow_upward),
-                            SizedBox(width: 8),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ).then((value) {
-                    setState(() {
-                      _sortBy = value!;
-                      _mysortfunction(_sortBy);
-                    });
-                  });
-                },
-              ),
             ),
             IconButton(
               onPressed: () => logout(context),
@@ -347,9 +300,9 @@ class _HomeScreenState extends State<HomeScreen> {
                       (document.data() as Map<String, dynamic>)['title'])
                   .toList()
                   .cast<String>();
-              sortedTitles = getSortedTitles(sortboolby, titles);
+              sortedTitles = getSortedTitles(s1, titles);
             }
-            if ((sortby == 'last_updated') && (!sortboolby)) {
+            if ((sortby == 'last_updated') && (!s2)) {
               List<QueryDocumentSnapshot> documents = snapshot.data!.docs;
               documents.sort((a, b) =>
                   (b.data() as Map<String, dynamic>)['last_updated'].compareTo(
@@ -360,11 +313,33 @@ class _HomeScreenState extends State<HomeScreen> {
                   .toList()
                   .cast<String>();
             }
-            if ((sortby == 'last_updated') && (sortboolby)) {
+            if ((sortby == 'last_updated') && (s2)) {
               List<QueryDocumentSnapshot> documents = snapshot.data!.docs;
               documents.sort((a, b) =>
                   (a.data() as Map<String, dynamic>)['last_updated'].compareTo(
                       (b.data() as Map<String, dynamic>)['last_updated']));
+              sortedTitles = documents
+                  .map((document) =>
+                      (document.data() as Map<String, dynamic>)['title'])
+                  .toList()
+                  .cast<String>();
+            }
+            if ((sortby == 'created_at') && (!s3)) {
+              List<QueryDocumentSnapshot> documents = snapshot.data!.docs;
+              documents.sort((a, b) => (b.data()
+                      as Map<String, dynamic>)['created_at']
+                  .compareTo((a.data() as Map<String, dynamic>)['created_at']));
+              sortedTitles = documents
+                  .map((document) =>
+                      (document.data() as Map<String, dynamic>)['title'])
+                  .toList()
+                  .cast<String>();
+            }
+            if ((sortby == 'created_at') && (s3)) {
+              List<QueryDocumentSnapshot> documents = snapshot.data!.docs;
+              documents.sort((a, b) => (a.data()
+                      as Map<String, dynamic>)['created_at']
+                  .compareTo((b.data() as Map<String, dynamic>)['created_at']));
               sortedTitles = documents
                   .map((document) =>
                       (document.data() as Map<String, dynamic>)['title'])

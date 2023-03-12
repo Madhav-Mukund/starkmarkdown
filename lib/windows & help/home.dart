@@ -12,7 +12,7 @@ import 'search.dart';
 import 'userdata.dart';
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 
-import 'deeplinks.dart';
+import 'Deeplinks.dart';
 import 'login.dart';
 import 'filedata.dart';
 

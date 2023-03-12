@@ -16,8 +16,8 @@ class MarkdownNew extends StatefulWidget {
 }
 
 class _MarkdownNewState extends State<MarkdownNew> {
-  late TextEditingController _controller;
-  late TextEditingController _titleController;
+  late TextEditingController controller;
+  late TextEditingController titlecontroller;
   String previewdata = '';
   bool showpreview = false;
   bool isDarkMode = false;
@@ -25,15 +25,15 @@ class _MarkdownNewState extends State<MarkdownNew> {
   @override
   void initState() {
     super.initState();
-    _controller = TextEditingController(text: widget.initialValue);
-    _titleController = TextEditingController(text: widget.title);
+    controller = TextEditingController(text: widget.initialValue);
+    titlecontroller = TextEditingController(text: widget.title);
     _loadTheme();
   }
 
   @override
   void dispose() {
-    _controller.dispose();
-    _titleController.dispose();
+    controller.dispose();
+    titlecontroller.dispose();
     super.dispose();
   }
 
@@ -49,18 +49,18 @@ class _MarkdownNewState extends State<MarkdownNew> {
       return;
     }
 
-    await _savenewFile(context);
+    await savefile(context);
 
     if (!mounted) {
       return;
     }
 
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
       content: Text('File saved'),
       duration: Duration(seconds: 1),
     ));
     // add a delay before navigating back to previous screen
-    await Future.delayed(Duration(milliseconds: 500));
+    await Future.delayed(const Duration(milliseconds: 500));
 
     if (!mounted) {
       return;
@@ -69,15 +69,15 @@ class _MarkdownNewState extends State<MarkdownNew> {
     Navigator.pop(context);
   }
 
-  Future<void> _savenewFile(BuildContext context) async {
+  Future<void> savefile(BuildContext context) async {
     final user = FirebaseAuth.instance.currentUser;
 
     if (user == null) return;
 
-    final title = _titleController.text.trim();
+    final title = titlecontroller.text.trim();
     if (title.isEmpty) return;
 
-    final fileContent = _controller.text.trim();
+    final fileContent = controller.text.trim();
 
     if (fileContent.isEmpty) return;
 
@@ -86,7 +86,7 @@ class _MarkdownNewState extends State<MarkdownNew> {
         .doc(user.uid)
         .collection('files');
 
-    final newFileId = Uuid().v4();
+    final newFileId = const Uuid().v4();
     List<String> filearrays = fileContent.split(' ');
 
     await filesRef.doc(newFileId).set({
@@ -101,8 +101,8 @@ class _MarkdownNewState extends State<MarkdownNew> {
 
   @override
   Widget build(BuildContext context) {
-    final titleController = _titleController;
-    final contentController = _controller;
+    final titleController = titlecontroller;
+    final contentController = controller;
 
     return WillPopScope(
         onWillPop: () async {
@@ -111,34 +111,41 @@ class _MarkdownNewState extends State<MarkdownNew> {
             final result = await showDialog<bool>(
               context: context,
               builder: (context) => AlertDialog(
-                title: Text('Save changes?'),
-                content: Text(
+                title: const Text('Save changes?'),
+                content: const Text(
                     'All changes made will be lost. Do you want to save the changes?'),
                 actions: [
                   TextButton(
-                    onPressed: () => Navigator.pop(context, true),
-                    child: Text('Save'),
+                    onPressed: () {
+                      Navigator.pop(context, false);
+                    },
+                    child: const Text('Cancel'),
                   ),
                   TextButton(
-                    onPressed: () => Navigator.pop(context, false),
-                    child: Text('Cancel'),
+                    onPressed: () {
+                      Navigator.pop(context, true);
+                    },
+                    child: const Text('Exit without saving'),
                   ),
+                  TextButton(
+                    onPressed: () {
+                      savenewMarkdown();
+                      Navigator.pop(context, true);
+                    },
+                    child: const Text('Save & Exit'),
+                  )
                 ],
               ),
             );
 
-            if (result == true) {
-              savenewMarkdown();
-            } else {
-              return true;
-            }
+            return result ?? true;
           }
 
           return true;
         },
         child: Scaffold(
           appBar: AppBar(
-            title: Text("Markdown Editor"),
+            title: const Text("Markdown Editor"),
             actions: [
               IconButton(
                 onPressed: () async {
@@ -150,7 +157,7 @@ class _MarkdownNewState extends State<MarkdownNew> {
                     Navigator.pop(context);
                   }
                 },
-                icon: Icon(Icons.save),
+                icon: const Icon(Icons.save),
               ),
               IconButton(
                 icon:
@@ -173,8 +180,8 @@ class _MarkdownNewState extends State<MarkdownNew> {
                   border: Border.all(width: 1, color: Colors.grey),
                 ),
                 child: TextField(
-                  controller: _titleController,
-                  decoration: InputDecoration(
+                  controller: titlecontroller,
+                  decoration: const InputDecoration(
                     border: InputBorder.none,
                     hintText: "File title",
                   ),
@@ -186,43 +193,52 @@ class _MarkdownNewState extends State<MarkdownNew> {
                   child: Column(
                     children: [
                       Expanded(
-                        child: SingleChildScrollView(
-                          child: TextField(
-                            controller: contentController,
-                            onChanged: (contentController) =>
-                                setState(() => previewdata = contentController),
-                            decoration: const InputDecoration(
-                                hintText: "Markdown content",
-                                border: InputBorder.none,
-                                contentPadding: EdgeInsets.symmetric(
-                                    horizontal: 16, vertical: 8)),
-                            keyboardType: TextInputType.multiline,
-                            maxLines: null,
+                        child: Container(
+                          width: double.infinity,
+                          child: Column(
+                            children: [
+                              Flexible(
+                                child: SingleChildScrollView(
+                                  child: TextField(
+                                    controller: contentController,
+                                    onChanged: (contentController) => setState(
+                                        () => previewdata = contentController),
+                                    decoration: const InputDecoration(
+                                        hintText: "Markdown content",
+                                        border: InputBorder.none,
+                                        contentPadding: EdgeInsets.symmetric(
+                                            horizontal: 16, vertical: 8)),
+                                    keyboardType: TextInputType.multiline,
+                                    maxLines: null,
+                                  ),
+                                ),
+                              ),
+                              SingleChildScrollView(
+                                child: Column(children: [
+                                  if (showpreview) const Divider(thickness: 4),
+                                  if (showpreview)
+                                    Container(
+                                      alignment: Alignment.center,
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 16),
+                                      child: const Text(
+                                        "Preview",
+                                        style: TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.bold),
+                                      ),
+                                    ),
+                                  if (showpreview) const Divider(thickness: 4),
+                                  if (showpreview)
+                                    Flexible(
+                                      child: MarkdownParser(data: previewdata),
+                                    ),
+                                ]),
+                              )
+                            ],
                           ),
                         ),
                       ),
-                      if (showpreview)
-                        Divider(
-                          thickness: 4,
-                        ),
-                      if (showpreview)
-                        Container(
-                          alignment: Alignment.center,
-                          padding: EdgeInsets.symmetric(horizontal: 16),
-                          child: Text(
-                            "Preview",
-                            style: TextStyle(
-                                fontSize: 16, fontWeight: FontWeight.bold),
-                          ),
-                        ),
-                      if (showpreview)
-                        const Divider(
-                          thickness: 4,
-                        ),
-                      if (showpreview)
-                        Expanded(
-                          child: MarkdownParser(data: previewdata),
-                        ),
                     ],
                   ),
                 ),

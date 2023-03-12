@@ -36,7 +36,6 @@ class UserData {
     );
   }
 
-  // sending data to our server
   Map<String, dynamic> toMap() {
     return {
       'uid': uid,
@@ -58,7 +57,6 @@ class UserData {
         return null;
       }
     } catch (e) {
-      print('Error retrieving user data: $e');
       return null;
     }
   }

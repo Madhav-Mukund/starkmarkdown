@@ -43,7 +43,6 @@ class _MarkdownEditorState extends State<MarkdownEditor> {
 
   @override
   void dispose() {
-    saveMarkdown();
     _controller.dispose();
     _titleController.dispose();
     super.dispose();

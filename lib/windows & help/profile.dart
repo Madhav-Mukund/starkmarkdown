@@ -65,7 +65,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
         });
       }
     } catch (e) {
-      print(e);
       setState(() {
         _isLoading = false;
       });
@@ -245,7 +244,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
         const SnackBar(content: Text('Profile updated successfully')),
       );
     } catch (e) {
-      print(e);
       setState(() {
         _isLoading = false;
       });

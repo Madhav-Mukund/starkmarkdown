@@ -16,6 +16,7 @@ final darkTheme = ThemeData(
   floatingActionButtonTheme: const FloatingActionButtonThemeData(
     backgroundColor: Colors.blue,
   ),
+  dividerColor: Colors.blue,
 );
 
 class ThemeProvider extends ChangeNotifier {

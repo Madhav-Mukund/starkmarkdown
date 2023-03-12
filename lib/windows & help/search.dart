@@ -86,7 +86,7 @@ class _SearchScreenState extends State<SearchScreen> {
       if (_data.endDate != null) {
         Query queryed = collectionRef.where('created_at',
             isLessThanOrEqualTo: _data.endDate);
-        print(_data.endDate);
+
         QuerySnapshot querySnapshoted = await queryed.get();
         List<QueryDocumentSnapshot<Object?>> datedoced =
             querySnapshoted.docs.toList();
@@ -294,7 +294,8 @@ class _SearchScreenState extends State<SearchScreen> {
                         List<String> keywords =
                             _keywordsController.text.split(',');
                         if (keywords.length > 10) {
-                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                          ScaffoldMessenger.of(context)
+                              .showSnackBar(const SnackBar(
                             content: Text('Please enter up to 10 keywords'),
                           ));
 

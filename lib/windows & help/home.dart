@@ -191,7 +191,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               SizedBox(width: 10),
               Text(
-                "Welcome ${_loggedInUser != null ? _loggedInUser.firstName : 'User'}",
+                "Welcome ${_isLoggedIn ? _loggedInUser.firstName : 'User'}",
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
@@ -349,7 +349,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   .cast<String>();
               sortedTitles = getSortedTitles(sortboolby, titles);
             }
-            if ((sortby == 'last_updated') && (sortboolby)) {
+            if ((sortby == 'last_updated') && (!sortboolby)) {
               List<QueryDocumentSnapshot> documents = snapshot.data!.docs;
               documents.sort((a, b) =>
                   (b.data() as Map<String, dynamic>)['last_updated'].compareTo(
@@ -360,7 +360,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   .toList()
                   .cast<String>();
             }
-            if ((sortby == 'last_updated') && (!sortboolby)) {
+            if ((sortby == 'last_updated') && (sortboolby)) {
               List<QueryDocumentSnapshot> documents = snapshot.data!.docs;
               documents.sort((a, b) =>
                   (a.data() as Map<String, dynamic>)['last_updated'].compareTo(

@@ -59,7 +59,6 @@ class _MarkdownNewState extends State<MarkdownNew> {
       content: Text('File saved'),
       duration: Duration(seconds: 1),
     ));
-    // add a delay before navigating back to previous screen
     await Future.delayed(const Duration(milliseconds: 500));
 
     if (!mounted) {
@@ -170,11 +169,16 @@ class _MarkdownNewState extends State<MarkdownNew> {
                     Navigator.pop(context);
                   }
                 },
-                icon: const Icon(Icons.save),
+                icon: const Icon(
+                  Icons.save,
+                  color: Color.fromARGB(255, 255, 193, 7),
+                ),
               ),
               IconButton(
-                icon:
-                    Icon(showpreview ? Icons.visibility : Icons.visibility_off),
+                icon: Icon(
+                  showpreview ? Icons.visibility : Icons.visibility_off,
+                  color: Color.fromARGB(255, 255, 193, 7),
+                ),
                 onPressed: () {
                   setState(() {
                     previewdata = contentController.text;
@@ -188,6 +192,7 @@ class _MarkdownNewState extends State<MarkdownNew> {
             children: [
               Container(
                 width: double.infinity,
+                margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadiusDirectional.circular(10),
                   border: Border.all(width: 1, color: Colors.grey),
@@ -210,7 +215,7 @@ class _MarkdownNewState extends State<MarkdownNew> {
                           width: double.infinity,
                           child: Column(
                             children: [
-                              Flexible(
+                              Expanded(
                                 child: SingleChildScrollView(
                                   child: TextField(
                                     controller: contentController,
@@ -226,28 +231,30 @@ class _MarkdownNewState extends State<MarkdownNew> {
                                   ),
                                 ),
                               ),
-                              SingleChildScrollView(
-                                child: Column(children: [
-                                  if (showpreview) const Divider(thickness: 4),
-                                  if (showpreview)
-                                    Container(
-                                      alignment: Alignment.center,
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal: 16),
-                                      child: const Text(
-                                        "Preview",
-                                        style: TextStyle(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.bold),
-                                      ),
-                                    ),
-                                  if (showpreview) const Divider(thickness: 4),
-                                  if (showpreview)
-                                    Flexible(
-                                      child: MarkdownParser(data: previewdata),
-                                    ),
-                                ]),
-                              )
+                              if (showpreview)
+                                const Divider(
+                                  thickness: 4,
+                                ),
+                              if (showpreview)
+                                Container(
+                                  alignment: Alignment.bottomLeft,
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 16),
+                                  child: const Text(
+                                    "Preview",
+                                    style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold),
+                                  ),
+                                ),
+                              if (showpreview)
+                                const Divider(
+                                  thickness: 4,
+                                ),
+                              if (showpreview)
+                                Expanded(
+                                  child: MarkdownParser(data: previewdata),
+                                ),
                             ],
                           ),
                         ),

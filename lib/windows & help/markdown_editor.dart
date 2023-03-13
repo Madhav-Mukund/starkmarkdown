@@ -1,7 +1,4 @@
-// ignore_for_file: use_build_context_synchronously, library_private_types_in_public_api
-
 import 'package:flutter/material.dart';
-import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -117,7 +114,10 @@ class _MarkdownEditorState extends State<MarkdownEditor> {
         },
         child: Scaffold(
           appBar: AppBar(
-            title: const Text("Markdown Editor"),
+            title: const Text(
+              "Markdown Editor",
+              style: TextStyle(color: Color.fromARGB(255, 236, 239, 241)),
+            ),
             actions: [
               IconButton(
                 onPressed: () {
@@ -127,11 +127,16 @@ class _MarkdownEditorState extends State<MarkdownEditor> {
                     Navigator.pop(context);
                   }
                 },
-                icon: const Icon(Icons.save),
+                icon: const Icon(
+                  Icons.save,
+                  color: Color.fromARGB(255, 255, 193, 7),
+                ),
               ),
               IconButton(
-                icon:
-                    Icon(showpreview ? Icons.visibility : Icons.visibility_off),
+                icon: Icon(
+                  showpreview ? Icons.visibility : Icons.visibility_off,
+                  color: Color.fromARGB(255, 255, 193, 7),
+                ),
                 onPressed: () {
                   setState(() {
                     previewdata = _controller.text;
@@ -145,7 +150,7 @@ class _MarkdownEditorState extends State<MarkdownEditor> {
             children: [
               Container(
                 width: double.infinity,
-                margin: const EdgeInsets.symmetric(vertical: 0, horizontal: 8),
+                margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadiusDirectional.circular(10),
                   border: Border.all(width: 1, color: Colors.grey),

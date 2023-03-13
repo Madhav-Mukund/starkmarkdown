@@ -142,9 +142,11 @@ class _LoginScreenState extends State<LoginScreen> {
         );
       },
       child: const Text(
-        "Don't have an account? Register",
+        "Register",
         style: TextStyle(
-          color: Colors.grey,
+          decoration: TextDecoration.underline,
+          fontSize: 16,
+          color: Colors.blue,
         ),
       ),
     );
@@ -152,7 +154,7 @@ class _LoginScreenState extends State<LoginScreen> {
     return Scaffold(
       backgroundColor: Colors.white,
       body: Padding(
-        padding: EdgeInsets.only(left: 40, right: 40, top: 80),
+        padding: const EdgeInsets.only(left: 40, right: 40, top: 80),
         child: SingleChildScrollView(
           child: Form(
             key: _formKey,
@@ -176,7 +178,14 @@ class _LoginScreenState extends State<LoginScreen> {
                 const SizedBox(height: 15),
                 googleButton,
                 const SizedBox(height: 15),
-                registerButton,
+                Row(children: [
+                  const Text("Don't have an account?",
+                      style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                          color: Colors.grey)),
+                  registerButton,
+                ]),
                 const SizedBox(height: 15),
                 errorMessage != null
                     ? Text(

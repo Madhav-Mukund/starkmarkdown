@@ -99,13 +99,11 @@ class _HomeScreenState extends State<HomeScreen> {
   void AuthChanges() {
     FirebaseAuth.instance.authStateChanges().listen((User? user) async {
       if (user == null) {
-        // User is signed out, remove persistent authentication
         await _prefs.setBool('isLoggedIn', false);
         setState(() {
           _isLoggedIn = false;
         });
       } else {
-        // User is signed in, enable persistent authentication
         await _prefs.setBool('isLoggedIn', true);
         setState(() {
           _isLoggedIn = true;
@@ -171,29 +169,36 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
+          backgroundColor: Color.fromARGB(255, 26, 35, 126),
           title: Row(
             children: [
               GestureDetector(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => ProfileScreen(),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => ProfileScreen(),
+                      ),
+                    );
+                  },
+                  child: Container(
+                    decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                            color: Color.fromARGB(255, 255, 193, 7), width: 2)),
+                    child: CircleAvatar(
+                      radius: 15,
+                      backgroundImage: _loggedInUser.profileImageUrl != null
+                          ? NetworkImage(_loggedInUser.profileImageUrl!)
+                          : AssetImage('images/default_profile.png')
+                              as ImageProvider,
                     ),
-                  );
-                },
-                child: CircleAvatar(
-                  radius: 15,
-                  backgroundImage: _loggedInUser.profileImageUrl != null
-                      ? NetworkImage(_loggedInUser.profileImageUrl!)
-                      : AssetImage('images/default_profile.png')
-                          as ImageProvider,
-                ),
-              ),
+                  )),
               SizedBox(width: 10),
               Text(
                 "Welcome ${_isLoggedIn ? _loggedInUser.firstName : 'User'}",
                 style: TextStyle(
+                  color: Color.fromARGB(255, 236, 239, 241),
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
                 ),
@@ -211,10 +216,16 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 );
               },
-              icon: Icon(Icons.search),
+              icon: Icon(
+                Icons.search,
+                color: Color.fromARGB(255, 255, 193, 7),
+              ),
             ),
             IconButton(
-              icon: Icon(Icons.sort),
+              icon: Icon(
+                Icons.sort,
+                color: Color.fromARGB(255, 255, 193, 7),
+              ),
               onPressed: () {
                 showMenu<String>(
                   context: context,
@@ -224,9 +235,9 @@ class _HomeScreenState extends State<HomeScreen> {
                       value: 'title',
                       child: Row(
                         children: [
-                          Text('Title : ' + (s1 ? '(A-Z)' : '(Z-A)')),
-                          SizedBox(width: 8),
                           selected[0] ? Icon(Icons.check) : SizedBox(width: 0),
+                          SizedBox(width: 8),
+                          Text('Title : ' + (s1 ? '(A-Z)' : '(Z-A)')),
                         ],
                       ),
                     ),
@@ -234,10 +245,13 @@ class _HomeScreenState extends State<HomeScreen> {
                       value: 'dateModified',
                       child: Row(
                         children: [
-                          Text('Date Modified'),
-                          Icon(s2 ? Icons.arrow_downward : Icons.arrow_upward),
-                          SizedBox(width: 8),
                           selected[1] ? Icon(Icons.check) : SizedBox(width: 0),
+                          SizedBox(width: 8),
+                          Text('Date Modified :'),
+                          SizedBox(
+                            width: 10,
+                          ),
+                          Icon(s2 ? Icons.arrow_downward : Icons.arrow_upward),
                         ],
                       ),
                     ),
@@ -245,10 +259,13 @@ class _HomeScreenState extends State<HomeScreen> {
                       value: 'datecreated',
                       child: Row(
                         children: [
-                          Text('Date Created'),
-                          Icon(s3 ? Icons.arrow_downward : Icons.arrow_upward),
-                          SizedBox(width: 8),
                           selected[2] ? Icon(Icons.check) : SizedBox(width: 0),
+                          SizedBox(width: 8),
+                          Text('Date Created :'),
+                          SizedBox(
+                            width: 17,
+                          ),
+                          Icon(s3 ? Icons.arrow_downward : Icons.arrow_upward),
                         ],
                       ),
                     ),
@@ -271,7 +288,10 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             IconButton(
               onPressed: () => logout(context),
-              icon: Icon(Icons.logout),
+              icon: Icon(
+                Icons.logout,
+                color: Color.fromARGB(255, 255, 193, 7),
+              ),
             ),
           ],
         ),
@@ -357,77 +377,91 @@ class _HomeScreenState extends State<HomeScreen> {
                 Map<String, dynamic> data =
                     document.data() as Map<String, dynamic>;
 
-                return ListTile(
-                  title: Text(title),
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => MarkdownEditor(
-                          initialValue: data['file_content'],
-                          title: data['title'],
-                        ),
-                      ),
-                    );
-                  },
-                  trailing: PopupMenuButton(
-                    itemBuilder: (BuildContext context) => <PopupMenuEntry>[
-                      PopupMenuItem(
-                        value: 'share',
-                        child: Text('Share'),
-                      ),
-                      PopupMenuItem(
-                        value: 'delete',
-                        child: Text('Delete'),
-                      ),
-                    ],
-                    onSelected: (value) async {
-                      if (value == 'share') {
-                        String uid = FirebaseAuth.instance.currentUser!.uid;
-                        widget.file = (await FileData.getFileDataByTitle(
-                            data['title'], uid))!;
-                        widget.userdata =
-                            (await UserData.getUserDataByUid(uid))!;
-                        String mydeeplink =
-                            await Firebasedynamiclink.myDynamiclink(
-                                widget.file, widget.userdata);
-                        await Share.share(
-                            'Check out my file: ${widget.file.title}\n\n$mydeeplink');
-                      } else if (value == 'delete') {
-                        showDialog(
-                          context: context,
-                          builder: (BuildContext context) {
-                            return AlertDialog(
-                              title: Text("Delete file"),
-                              content: Text(
-                                  "Are you sure you want to delete this file? This action is permanent."),
-                              actions: [
-                                TextButton(
-                                  child: Text("Cancel"),
-                                  onPressed: () {
-                                    Navigator.pop(context);
-                                  },
-                                ),
-                                TextButton(
-                                  child: Text("Delete"),
-                                  onPressed: () async {
-                                    await FirebaseFirestore.instance
-                                        .collection('users')
-                                        .doc(_user!.uid)
-                                        .collection('files')
-                                        .doc(document.id)
-                                        .delete();
-                                    Navigator.pop(context);
-                                  },
-                                ),
-                              ],
-                            );
-                          },
-                        );
-                      }
-                    },
+                return Column(children: [
+                  SizedBox(
+                    height: 8,
                   ),
-                );
+                  Container(
+                      decoration: BoxDecoration(
+                          border: Border.all(color: Colors.grey),
+                          borderRadius: BorderRadius.all(Radius.circular(10))),
+                      child: ListTile(
+                        title: Text(title),
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => MarkdownEditor(
+                                initialValue: data['file_content'],
+                                title: data['title'],
+                              ),
+                            ),
+                          );
+                        },
+                        trailing: PopupMenuButton(
+                          itemBuilder: (BuildContext context) =>
+                              <PopupMenuEntry>[
+                            PopupMenuItem(
+                              value: 'share',
+                              child: Text('Share'),
+                            ),
+                            PopupMenuItem(
+                              value: 'delete',
+                              child: Text('Delete'),
+                            ),
+                          ],
+                          onSelected: (value) async {
+                            if (value == 'share') {
+                              String uid =
+                                  FirebaseAuth.instance.currentUser!.uid;
+                              widget.file = (await FileData.getFileDataByTitle(
+                                  data['title'], uid))!;
+                              widget.userdata =
+                                  (await UserData.getUserDataByUid(uid))!;
+                              String mydeeplink =
+                                  await Firebasedynamiclink.myDynamiclink(
+                                      widget.file, widget.userdata);
+                              await Share.share(
+                                  'Check out my file: ${widget.file.title}\n\n$mydeeplink');
+                            } else if (value == 'delete') {
+                              showDialog(
+                                context: context,
+                                builder: (BuildContext context) {
+                                  return AlertDialog(
+                                    title: Text("Delete file"),
+                                    content: Text(
+                                        "Are you sure you want to delete this file? This action is permanent."),
+                                    actions: [
+                                      TextButton(
+                                        child: Text("Cancel"),
+                                        onPressed: () {
+                                          Navigator.pop(context);
+                                        },
+                                      ),
+                                      TextButton(
+                                        child: Text("Delete"),
+                                        onPressed: () async {
+                                          await FirebaseFirestore.instance
+                                              .collection('users')
+                                              .doc(_user!.uid)
+                                              .collection('files')
+                                              .doc(document.id)
+                                              .delete();
+                                          Navigator.pop(context);
+                                        },
+                                      ),
+                                    ],
+                                  );
+                                },
+                              );
+                            }
+                          },
+                        ),
+                      )),
+                  SizedBox(
+                    height: 10,
+                  )
+                ]);
               }).toList(),
             );
           },
@@ -435,6 +469,8 @@ class _HomeScreenState extends State<HomeScreen> {
         floatingActionButton: Padding(
           padding: const EdgeInsets.only(bottom: 50.0, right: 35.0),
           child: FloatingActionButton(
+            backgroundColor: Color.fromARGB(255, 26, 35, 126),
+            foregroundColor: Color.fromARGB(255, 255, 193, 7),
             onPressed: () {
               Navigator.push(
                 context,

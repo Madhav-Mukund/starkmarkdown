@@ -182,11 +182,28 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       controller: _emailController,
                       readOnly: true,
                       decoration: const InputDecoration(
-                        labelText: 'Email',
+                        labelText: 'E-mail',
                       ),
                     ),
                     const SizedBox(
                       height: 40,
+                    ),
+                    ElevatedButton(
+                      onPressed: updateUserData,
+                      style: const ButtonStyle(
+                          fixedSize:
+                              MaterialStatePropertyAll(Size.fromWidth(125))),
+                      child: const Text('Update Profile'),
+                    ),
+                    ElevatedButton(
+                      onPressed: () => logout(context),
+                      style: const ButtonStyle(
+                          fixedSize:
+                              MaterialStatePropertyAll(Size.fromWidth(125))),
+                      child: const Text('Logout'),
+                    ),
+                    const SizedBox(
+                      height: 20,
                     ),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -207,14 +224,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               : const Icon(Icons.brightness_medium),
                         ),
                       ],
-                    ),
-                    ElevatedButton(
-                      onPressed: updateUserData,
-                      child: const Text('Update Profile'),
-                    ),
-                    ElevatedButton(
-                      onPressed: () => logout(context),
-                      child: const Text('Logout'),
                     ),
                   ],
                 ),

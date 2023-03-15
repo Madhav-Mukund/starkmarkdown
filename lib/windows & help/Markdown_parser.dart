@@ -1,13 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
+import 'theme.dart';
 
 class MarkdownParser extends StatelessWidget {
   final String data;
+  Color def = Colors.black;
+  Color cb = Colors.grey.shade900;
 
   MarkdownParser({required this.data});
 
   @override
   Widget build(BuildContext context) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    if (themeProvider.isDarkModeEnabled) {
+      def = Colors.white;
+      cb = Colors.black;
+    }
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: parser(data),
@@ -27,21 +36,49 @@ class MarkdownParser extends StatelessWidget {
   }
 
   List<Widget> blocks(String data) {
-    final List<String> blocks = data.split('\n\n');
+    final List<String> lines = data.split('\n');
     final List<Widget> widgets = [];
 
-    for (final block in blocks) {
-      if (block.startsWith('#')) {
-        widgets.add(heading(block));
-      } else if (block.startsWith('- ')) {
-        widgets.add(lists(block));
-      } else if (block.startsWith('```')) {
-        widgets.add(codeblock(block));
-      } else if (block.startsWith('![')) {
-        widgets.add(image(block));
+    String currentBlock = '';
+
+    for (final line in lines) {
+      if (line.startsWith('#')) {
+        if (currentBlock.isNotEmpty) {
+          widgets.add(paragraph(currentBlock, def));
+          currentBlock = '';
+        }
+        widgets.add(heading(line));
+      } else if (line.startsWith('- ')) {
+        if (currentBlock.isNotEmpty) {
+          widgets.add(paragraph(currentBlock, def));
+          currentBlock = '';
+        }
+        widgets.add(lists(line));
+      } else if (line.startsWith('```')) {
+        if (currentBlock.isNotEmpty) {
+          widgets.add(paragraph(currentBlock, def));
+          currentBlock = '';
+        }
+        widgets.add(codeblock(line));
+      } else if (line.startsWith('![')) {
+        if (currentBlock.isNotEmpty) {
+          widgets.add(paragraph(currentBlock, def));
+          currentBlock = '';
+        }
+        widgets.add(image(line));
+      } else if (line.startsWith('> ')) {
+        if (currentBlock.isNotEmpty) {
+          widgets.add(paragraph(currentBlock, def));
+          currentBlock = '';
+        }
+        widgets.add(quote(line));
       } else {
-        widgets.add(paragraph(block));
+        currentBlock += line + '\n';
       }
+    }
+
+    if (currentBlock.isNotEmpty) {
+      widgets.add(paragraph(currentBlock, def));
     }
 
     return widgets;
@@ -90,7 +127,7 @@ class MarkdownParser extends StatelessWidget {
               const SizedBox(
                 width: 8.0,
               ),
-              Flexible(child: paragraph(text)),
+              Flexible(child: paragraph(text, def)),
             ],
           ),
         );
@@ -126,10 +163,10 @@ class MarkdownParser extends StatelessWidget {
     return Image.network(url, semanticLabel: alt);
   }
 
-  Widget paragraph(String data) {
+  Widget paragraph(String data, Color color) {
     final List<TextSpan> textSpans = [];
 
-    final RegExp allreg = RegExp(r'(\*\*|__|\*|_|\~\~)(.*?)\1');
+    final RegExp allreg = RegExp(r'(\*\*\*|\*\*|__|\*|_|\~\~)(.*?)\1');
 
     int i = 0;
     while (i < data.length) {
@@ -155,7 +192,7 @@ class MarkdownParser extends StatelessWidget {
       TextSpan(children: textSpans),
       maxLines: null,
       textAlign: TextAlign.justify,
-      style: GoogleFonts.lato(fontSize: 16),
+      style: GoogleFonts.lato(fontSize: 16, color: color),
     );
   }
 
@@ -169,8 +206,27 @@ class MarkdownParser extends StatelessWidget {
         return GoogleFonts.lato(fontStyle: FontStyle.italic);
       case '~~':
         return GoogleFonts.lato(decoration: TextDecoration.lineThrough);
+      case '***':
+        return GoogleFonts.lato(
+            fontStyle: FontStyle.italic, fontWeight: FontWeight.bold);
       default:
         return TextStyle();
     }
+  }
+
+  Widget quote(String data) {
+    final String text = data.substring(1);
+    return Container(
+      decoration: BoxDecoration(
+        border: Border(
+          left: BorderSide(
+            color: Colors.grey.shade400,
+            width: 4.0,
+          ),
+        ),
+      ),
+      padding: const EdgeInsets.only(left: 8),
+      child: paragraph(text, cb),
+    );
   }
 }

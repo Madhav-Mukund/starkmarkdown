@@ -11,8 +11,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   SharedPreferences prefs = await SharedPreferences.getInstance();
 
-  await Firebase
-      .initializeApp(); // Get the saved authentication state from shared preferences
+  await Firebase.initializeApp();
   bool isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
 
   runApp(

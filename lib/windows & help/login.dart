@@ -97,7 +97,7 @@ class _LoginScreenState extends State<LoginScreen> {
     final loginButton = Material(
       elevation: 5,
       borderRadius: BorderRadius.circular(30),
-      color: Colors.blueAccent,
+      color: Color.fromARGB(255, 26, 35, 126),
       child: MaterialButton(
           padding: const EdgeInsets.fromLTRB(20, 15, 20, 15),
           minWidth: MediaQuery.of(context).size.width,
@@ -146,7 +146,7 @@ class _LoginScreenState extends State<LoginScreen> {
         style: TextStyle(
           decoration: TextDecoration.underline,
           fontSize: 16,
-          color: Colors.blue,
+          color: Color.fromARGB(255, 26, 35, 126),
         ),
       ),
     );

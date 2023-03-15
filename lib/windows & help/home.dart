@@ -50,14 +50,6 @@ class _HomeScreenState extends State<HomeScreen> {
     _loadUserData();
     AuthChanges();
     initDynamicLinks();
-    _loadTheme();
-  }
-
-  void _loadTheme() async {
-    _prefs = await SharedPreferences.getInstance();
-    setState(() {
-      isDarkMode = _prefs.getBool('isDarkMode') ?? false;
-    });
   }
 
   void initDynamicLinks() async {

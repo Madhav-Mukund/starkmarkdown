@@ -192,14 +192,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       onPressed: updateUserData,
                       style: const ButtonStyle(
                           fixedSize:
-                              MaterialStatePropertyAll(Size.fromWidth(125))),
+                              MaterialStatePropertyAll(Size.fromWidth(135))),
                       child: const Text('Update Profile'),
                     ),
                     ElevatedButton(
                       onPressed: () => logout(context),
                       style: const ButtonStyle(
                           fixedSize:
-                              MaterialStatePropertyAll(Size.fromWidth(125))),
+                              MaterialStatePropertyAll(Size.fromWidth(135))),
                       child: const Text('Logout'),
                     ),
                     const SizedBox(
@@ -243,7 +243,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       String email = _emailController.text;
       await _db.collection('users').doc(uid).update({
         'firstName': firstName,
-        'lastName': lastName,
+        'secondName': lastName,
         'email': email,
       });
       setState(() {

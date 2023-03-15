@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 final blue = Color.fromARGB(255, 26, 35, 126);
+final yellow = Color.fromARGB(255, 255, 193, 7);
 final lightTheme = ThemeData(
   primarySwatch: MaterialColor(blue.value, {
     50: blue,
@@ -26,17 +27,17 @@ final lightTheme = ThemeData(
 
 final darkTheme = ThemeData(
     brightness: Brightness.dark,
-    primarySwatch: MaterialColor(blue.value, {
-      50: blue,
-      100: blue,
-      200: blue,
-      300: blue,
-      400: blue,
-      500: blue,
-      600: blue,
-      700: blue,
-      800: blue,
-      900: blue,
+    primarySwatch: MaterialColor(yellow.value, {
+      50: yellow,
+      100: yellow,
+      200: yellow,
+      300: yellow,
+      400: yellow,
+      500: yellow,
+      600: yellow,
+      700: yellow,
+      800: yellow,
+      900: yellow,
     }),
     appBarTheme: const AppBarTheme(
       color: Color.fromARGB(255, 26, 35, 126),

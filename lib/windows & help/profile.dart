@@ -192,14 +192,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       onPressed: updateUserData,
                       style: const ButtonStyle(
                           fixedSize:
-                              MaterialStatePropertyAll(Size.fromWidth(135))),
+                              MaterialStatePropertyAll(Size.fromWidth(150))),
                       child: const Text('Update Profile'),
                     ),
                     ElevatedButton(
                       onPressed: () => logout(context),
                       style: const ButtonStyle(
                           fixedSize:
-                              MaterialStatePropertyAll(Size.fromWidth(135))),
+                              MaterialStatePropertyAll(Size.fromWidth(150))),
                       child: const Text('Logout'),
                     ),
                     const SizedBox(

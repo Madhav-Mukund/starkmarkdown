@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 final blue = Color.fromARGB(255, 26, 35, 126);
 final yellow = Color.fromARGB(255, 255, 193, 7);
@@ -61,8 +62,20 @@ class ThemeProvider extends ChangeNotifier {
 
   bool get isDarkModeEnabled => _isDarkModeEnabled;
 
-  void toggleTheme(bool isDarkModeEnabled) {
+  void toggleTheme(bool isDarkModeEnabled) async {
     _isDarkModeEnabled = isDarkModeEnabled;
     notifyListeners();
+
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('isDarkModeEnabled', isDarkModeEnabled);
+  }
+
+  Future<void> loadTheme() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    bool isDarkModeEnabled = prefs.getBool('isDarkModeEnabled') ?? false;
+    if (isDarkModeEnabled != _isDarkModeEnabled) {
+      _isDarkModeEnabled = isDarkModeEnabled;
+      notifyListeners();
+    }
   }
 }

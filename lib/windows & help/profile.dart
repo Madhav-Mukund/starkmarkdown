@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 import 'dart:io';
 
 import 'package:shared_preferences/shared_preferences.dart';
+import 'home.dart';
 import 'theme.dart';
 import 'userdata.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -21,11 +22,11 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
-  final FirebaseFirestore _db = FirebaseFirestore.instance;
+  final FirebaseFirestore db = FirebaseFirestore.instance;
   late SharedPreferences _prefs;
 
   late User _user;
-  bool _isLoading = false;
+  bool isLoading = false;
   bool _isLoggedIn = false;
   TextEditingController _firstNameController = TextEditingController();
   TextEditingController _lastNameController = TextEditingController();
@@ -47,13 +48,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Future<void> _getUserData() async {
     setState(() {
-      _isLoading = true;
+      isLoading = true;
     });
     try {
       User? currentUser = _auth.currentUser;
       if (currentUser != null) {
         DocumentSnapshot documentSnapshot =
-            await _db.collection('users').doc(currentUser.uid).get();
+            await db.collection('users').doc(currentUser.uid).get();
         Map<String, dynamic> data =
             documentSnapshot.data() as Map<String, dynamic>;
         setState(() {
@@ -61,12 +62,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
           _firstNameController.text = data['firstName'];
           _lastNameController.text = data['secondName'];
           _emailController.text = data['email'];
-          _isLoading = false;
+          isLoading = false;
         });
       }
     } catch (e) {
       setState(() {
-        _isLoading = false;
+        isLoading = false;
       });
     }
   }
@@ -76,9 +77,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final themeProvider = Provider.of<ThemeProvider>(context);
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Profile'),
+        title: Text('Profile'),
+        automaticallyImplyLeading: true,
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back),
+          onPressed: () {
+            Navigator.pushAndRemoveUntil(
+              context,
+              MaterialPageRoute(builder: (context) => HomeScreen()),
+              (Route<dynamic> route) => false,
+            );
+          },
+        ),
       ),
-      body: _isLoading
+      body: isLoading
           ? const Center(
               child: CircularProgressIndicator(),
             )
@@ -189,7 +201,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       height: 40,
                     ),
                     ElevatedButton(
-                      onPressed: updateUserData,
+                      onPressed: updatedata,
                       style: const ButtonStyle(
                           fixedSize:
                               MaterialStatePropertyAll(Size.fromWidth(150))),
@@ -232,29 +244,28 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Future<void> updateUserData() async {
+  Future<void> updatedata() async {
     setState(() {
-      _isLoading = true;
+      isLoading = true;
     });
     try {
       String uid = _user.uid;
       String firstName = _firstNameController.text;
       String lastName = _lastNameController.text;
-      String email = _emailController.text;
-      await _db.collection('users').doc(uid).update({
+
+      await db.collection('users').doc(uid).update({
         'firstName': firstName,
         'secondName': lastName,
-        'email': email,
       });
       setState(() {
-        _isLoading = false;
+        isLoading = false;
       });
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Profile updated successfully')),
       );
     } catch (e) {
       setState(() {
-        _isLoading = false;
+        isLoading = false;
       });
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Failed to update profile')),

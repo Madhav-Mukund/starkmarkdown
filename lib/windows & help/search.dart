@@ -29,11 +29,11 @@ class _SearchScreenState extends State<SearchScreen> {
   UserData _loggedInUser = UserData();
   String msearchtext = '';
   String ksearchtext = '';
-  SearchScreenData _data = SearchScreenData();
-  String? _selectedFilterOption;
+  SearchScreenData data = SearchScreenData();
+  String? selectedfilter;
   TextEditingController _startDateController = TextEditingController();
   TextEditingController _endDateController = TextEditingController();
-  TextEditingController _keywordsController = TextEditingController();
+  TextEditingController keyController = TextEditingController();
   bool isDarkMode = false;
   late SharedPreferences _prefs;
 
@@ -75,39 +75,45 @@ class _SearchScreenState extends State<SearchScreen> {
     if (f) {
       List<QueryDocumentSnapshot<Object?>> dateList = [];
 
-      if (_data.startDate != null) {
+      if (data.startDate != null) {
         Query queryd = collectionRef.where('created_at',
-            isGreaterThanOrEqualTo: _data.startDate);
+            isGreaterThanOrEqualTo: data.startDate);
         QuerySnapshot querySnapshotsd = await queryd.get();
         List<QueryDocumentSnapshot<Object?>> datedocsd =
             querySnapshotsd.docs.toList();
         dateList.addAll(datedocsd);
       }
-      if (_data.endDate != null) {
+      if (data.endDate != null) {
         Query queryed = collectionRef.where('created_at',
-            isLessThanOrEqualTo: _data.endDate);
+            isLessThanOrEqualTo: data.endDate);
 
         QuerySnapshot querySnapshoted = await queryed.get();
         List<QueryDocumentSnapshot<Object?>> datedoced =
             querySnapshoted.docs.toList();
         dateList.addAll(datedoced);
       }
+
+      dateList.removeWhere(
+          (doc) => resultList.any((otherDoc) => doc.id == otherDoc.id));
+
       resultList.addAll(dateList);
     }
 
-    List<QueryDocumentSnapshot> results = resultList;
+    resultList = resultList.toSet().toList();
 
     if (searchText.isNotEmpty) {
       List<String> filearrays = searchText.split(' ');
 
       List<QueryDocumentSnapshot> contentResults =
           await _searchFilesContent(filearrays);
+      contentResults.removeWhere(
+          (doc) => resultList.any((otherDoc) => doc.id == otherDoc.id));
 
-      results.addAll(contentResults.toSet().toList());
+      resultList.addAll(contentResults);
     }
 
     setState(() {
-      _searchResults = results;
+      _searchResults = resultList;
     });
   }
 
@@ -135,7 +141,16 @@ class _SearchScreenState extends State<SearchScreen> {
             padding: const EdgeInsets.all(8.0),
             child: TextField(
               controller: _searchController,
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
+                suffixIcon: IconButton(
+                  icon: Icon(Icons.clear),
+                  onPressed: () {
+                    setState(() {
+                      _searchController.clear();
+                      msearchtext = '';
+                    });
+                  },
+                ),
                 hintText: 'Search',
               ),
               onChanged: (value) {
@@ -156,10 +171,11 @@ class _SearchScreenState extends State<SearchScreen> {
                     alignedDropdown: true,
                     minWidth: 10.0,
                     child: DropdownButton<String>(
-                      value: _selectedFilterOption,
+                      value: selectedfilter,
                       onChanged: (String? value) {
                         setState(() {
-                          _selectedFilterOption = value!;
+                          selectedfilter = value!;
+                          _searchResults = [];
                         });
                       },
                       items: <String>['Start Date', 'End Date', 'Keywords']
@@ -178,8 +194,7 @@ class _SearchScreenState extends State<SearchScreen> {
                   padding: const EdgeInsets.only(left: 8.0),
                   child: ElevatedButton(
                     onPressed: () {
-                      _searchFiles(
-                          msearchtext, _data.filterByDate, ksearchtext);
+                      _searchFiles(msearchtext, data.filterByDate, ksearchtext);
                     },
                     child: const Text('Search'),
                   ),
@@ -187,7 +202,7 @@ class _SearchScreenState extends State<SearchScreen> {
               ),
             ],
           ),
-          if (_selectedFilterOption == 'Start Date')
+          if (selectedfilter == 'Start Date')
             Row(
               children: [
                 Expanded(
@@ -202,8 +217,8 @@ class _SearchScreenState extends State<SearchScreen> {
                           icon: const Icon(Icons.clear),
                           onPressed: () {
                             _startDateController.clear();
-                            _data.startDate = null;
-                            _data.filterByDate = false;
+                            data.startDate = null;
+                            data.filterByDate = false;
                           },
                         ),
                       ),
@@ -222,14 +237,14 @@ class _SearchScreenState extends State<SearchScreen> {
                     if (selectedDate != null) {
                       _startDateController.text =
                           DateFormat('yyyy-MM-dd').format(selectedDate);
-                      _data.startDate = selectedDate;
-                      _data.filterByDate = true;
+                      data.startDate = selectedDate;
+                      data.filterByDate = true;
                     }
                   },
                 ),
               ],
             ),
-          if (_selectedFilterOption == 'End Date')
+          if (selectedfilter == 'End Date')
             Row(
               children: [
                 Expanded(
@@ -244,8 +259,8 @@ class _SearchScreenState extends State<SearchScreen> {
                           icon: const Icon(Icons.clear),
                           onPressed: () {
                             _endDateController.clear();
-                            _data.endDate = null;
-                            _data.filterByDate = false;
+                            data.endDate = null;
+                            data.filterByDate = false;
                           },
                         ),
                       ),
@@ -264,21 +279,21 @@ class _SearchScreenState extends State<SearchScreen> {
                     if (selectedDate != null) {
                       _endDateController.text =
                           DateFormat('yyyy-MM-dd').format(selectedDate);
-                      _data.endDate = selectedDate;
-                      _data.filterByDate = true;
+                      data.endDate = selectedDate;
+                      data.filterByDate = true;
                     }
                   },
                 ),
               ],
             ),
-          if (_selectedFilterOption == 'Keywords')
+          if (selectedfilter == 'Keywords')
             Row(
               children: [
                 Expanded(
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 8.0),
                     child: TextFormField(
-                      controller: _keywordsController,
+                      controller: keyController,
                       decoration: InputDecoration(
                         labelText: 'Keywords',
                         hintText:
@@ -286,13 +301,12 @@ class _SearchScreenState extends State<SearchScreen> {
                         suffixIcon: IconButton(
                           icon: const Icon(Icons.clear),
                           onPressed: () {
-                            _keywordsController.clear();
+                            keyController.clear();
                           },
                         ),
                       ),
                       onChanged: (value) {
-                        List<String> keywords =
-                            _keywordsController.text.split(',');
+                        List<String> keywords = keyController.text.split(',');
                         if (keywords.length > 10) {
                           ScaffoldMessenger.of(context)
                               .showSnackBar(const SnackBar(
@@ -301,13 +315,13 @@ class _SearchScreenState extends State<SearchScreen> {
 
                           String newKeywords =
                               keywords.sublist(0, 10).join(',');
-                          _keywordsController.value = TextEditingValue(
+                          keyController.value = TextEditingValue(
                             text: newKeywords,
                             selection: TextSelection.collapsed(
                                 offset: newKeywords.length),
                           );
                         } else {
-                          ksearchtext = _keywordsController.text;
+                          ksearchtext = keyController.text;
                         }
                       },
                     ),

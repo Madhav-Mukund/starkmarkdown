@@ -29,11 +29,11 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  late SharedPreferences _prefs;
-  bool _isLoggedIn = false;
-  User? _user = FirebaseAuth.instance.currentUser;
-  UserData _loggedInUser = UserData();
-  String _sortBy = 'titleAscending';
+  late SharedPreferences prefs;
+  bool isLoggedIn = false;
+  User? user = FirebaseAuth.instance.currentUser;
+  UserData loggedInUser = UserData();
+  String sortBy = 'titleAscending';
   String sortby = 'title';
   bool sortboolby = false;
   List<String> sortedTitles = [];
@@ -46,8 +46,8 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    _loadSharedPreferences();
-    _loadUserData();
+    loadSharedPreferences();
+    loadUserData();
     AuthChanges();
     initDynamicLinks();
   }
@@ -56,17 +56,17 @@ class _HomeScreenState extends State<HomeScreen> {
     FirebaseDynamicLinks.instance.onLink.listen((dynamicLinkData) async {
       final Uri deepLink = dynamicLinkData.link;
 
-      _openFileFromDynamicLink(deepLink);
+      openFileFromDynamicLink(deepLink);
     });
     final PendingDynamicLinkData? data =
         await FirebaseDynamicLinks.instance.getInitialLink();
     final Uri? deepLink = data?.link;
     if (deepLink != null) {
-      _openFileFromDynamicLink(deepLink);
+      openFileFromDynamicLink(deepLink);
     }
   }
 
-  void _openFileFromDynamicLink(Uri deepLink) async {
+  void openFileFromDynamicLink(Uri deepLink) async {
     String UserID = deepLink.queryParameters['uid']!;
     String fileID = deepLink.queryParameters['fid']!;
 
@@ -79,7 +79,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
     String title = fileSnapshot['title'];
 
-    String initialValue = fileSnapshot['file_content'];
+    String initialValue = fileSnapshot['filecontent'];
     Navigator.push(
         context,
         MaterialPageRoute(
@@ -91,50 +91,52 @@ class _HomeScreenState extends State<HomeScreen> {
   void AuthChanges() {
     FirebaseAuth.instance.authStateChanges().listen((User? user) async {
       if (user == null) {
-        await _prefs.setBool('isLoggedIn', false);
+        await prefs.setBool('isLoggedIn', false);
         setState(() {
-          _isLoggedIn = false;
+          isLoggedIn = false;
         });
       } else {
-        await _prefs.setBool('isLoggedIn', true);
+        await prefs.setBool('isLoggedIn', true);
         setState(() {
-          _isLoggedIn = true;
+          isLoggedIn = true;
         });
       }
     });
   }
 
-  void _loadSharedPreferences() async {
-    _prefs = await SharedPreferences.getInstance();
+  void loadSharedPreferences() async {
+    prefs = await SharedPreferences.getInstance();
     setState(() {
-      _isLoggedIn = _prefs.getBool('isLoggedIn') ?? false;
+      isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
     });
   }
 
-  void _setIsLoggedIn(bool isLoggedIn) async {
-    await _prefs.setBool('isLoggedIn', isLoggedIn);
+  void setIsLoggedIn(bool isLoggedIn) async {
+    await prefs.setBool('isLoggedIn', isLoggedIn);
     if (mounted) {
       setState(() {
-        _isLoggedIn = isLoggedIn;
+        isLoggedIn = isLoggedIn;
       });
     }
   }
 
-  void _loadUserData() async {
-    if (_user != null) {
+  void loadUserData() async {
+    if (user != null) {
       DocumentSnapshot userDataSnapshot = await FirebaseFirestore.instance
           .collection('users')
-          .doc(_user!.uid)
+          .doc(user!.uid)
           .get();
+
+      setState(() {});
       if (mounted) {
         setState(() {
-          _loggedInUser = UserData.fromSnapshot(userDataSnapshot);
+          loggedInUser = UserData.fromSnapshot(userDataSnapshot);
         });
       }
     }
   }
 
-  void _mysortfunction(String value) {
+  void mysortfunction(String value) {
     if (value == 'title') {
       sortby = 'title';
       s1 = !s1;
@@ -180,19 +182,22 @@ class _HomeScreenState extends State<HomeScreen> {
                             color: Color.fromARGB(255, 255, 193, 7), width: 2)),
                     child: CircleAvatar(
                       radius: 15,
-                      backgroundImage: _loggedInUser.profileImageUrl != null
-                          ? NetworkImage(_loggedInUser.profileImageUrl!)
+                      backgroundImage: loggedInUser.profileImageUrl != null
+                          ? NetworkImage(loggedInUser.profileImageUrl!)
                           : AssetImage('images/default_profile.png')
                               as ImageProvider,
                     ),
                   )),
               SizedBox(width: 10),
-              Text(
-                "Welcome ${_isLoggedIn ? _loggedInUser.firstName : 'User'}",
-                style: TextStyle(
-                  color: Color.fromARGB(255, 236, 239, 241),
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Text(
+                  "Hii ${!(loggedInUser.firstName == null) ? loggedInUser.firstName : 'User'}",
+                  style: TextStyle(
+                    color: Color.fromARGB(255, 236, 239, 241),
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
             ],
@@ -264,14 +269,14 @@ class _HomeScreenState extends State<HomeScreen> {
                   ],
                 ).then((value) {
                   setState(() {
-                    _sortBy = value!;
-                    _mysortfunction(_sortBy);
+                    sortBy = value!;
+                    mysortfunction(sortBy);
                     selected = [false, false, false];
-                    if (_sortBy == 'title') {
+                    if (sortBy == 'title') {
                       selected[0] = true;
-                    } else if (_sortBy == 'dateModified') {
+                    } else if (sortBy == 'dateModified') {
                       selected[1] = true;
-                    } else if (_sortBy == 'datecreated') {
+                    } else if (sortBy == 'datecreated') {
                       selected[2] = true;
                     }
                   });
@@ -290,7 +295,7 @@ class _HomeScreenState extends State<HomeScreen> {
         body: StreamBuilder<QuerySnapshot>(
           stream: FirebaseFirestore.instance
               .collection('users')
-              .doc(_user!.uid)
+              .doc(user!.uid)
               .collection('files')
               .snapshots(),
           builder:
@@ -435,7 +440,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                         onPressed: () async {
                                           await FirebaseFirestore.instance
                                               .collection('users')
-                                              .doc(_user!.uid)
+                                              .doc(user!.uid)
                                               .collection('files')
                                               .doc(document.id)
                                               .delete();
@@ -497,7 +502,7 @@ class _HomeScreenState extends State<HomeScreen> {
               child: Text("Logout"),
               onPressed: () async {
                 await FirebaseAuth.instance.signOut();
-                _setIsLoggedIn(false);
+                setIsLoggedIn(false);
                 Navigator.pushAndRemoveUntil(
                   context,
                   MaterialPageRoute(builder: (context) => LoginScreen()),

@@ -33,7 +33,7 @@ class _MarkdownNewState extends State<MarkdownNew> {
   @override
   void dispose() {
     controller.dispose();
-    titlecontroller.dispose();
+
     super.dispose();
   }
 
@@ -73,7 +73,10 @@ class _MarkdownNewState extends State<MarkdownNew> {
 
     if (user == null) return;
 
-    String title = titlecontroller.text.trim();
+    String title;
+    String originaltitle = titlecontroller.text.trim();
+    title = originaltitle;
+
     if (title.isEmpty) return;
 
     final fileContent = controller.text.trim();
@@ -91,7 +94,7 @@ class _MarkdownNewState extends State<MarkdownNew> {
       int count = 1;
       String newTitle;
       do {
-        newTitle = '$title($count)';
+        newTitle = '$originaltitle($count)';
         count++;
         snapshot = await filesRef.where('title', isEqualTo: newTitle).get();
         title = newTitle;

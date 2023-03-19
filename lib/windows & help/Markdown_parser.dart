@@ -1,6 +1,8 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'theme.dart';
 
 class MarkdownParser extends StatelessWidget {
@@ -166,7 +168,8 @@ class MarkdownParser extends StatelessWidget {
   Widget paragraph(String data, Color color) {
     final List<TextSpan> textSpans = [];
 
-    final RegExp allreg = RegExp(r'(\*\*\*|\*\*|__|\*|_|\~\~)(.*?)\1');
+    final RegExp allreg = RegExp(
+        r'(\*\*\*|\*\*|__|\*|_|\~\~|\[(.*?)\]\((.*?)\)|([a-zA-Z0-9]+(\.[a-zA-Z0-9]+)+(\S+)?))');
 
     int i = 0;
     while (i < data.length) {
@@ -180,10 +183,29 @@ class MarkdownParser extends StatelessWidget {
         }
 
         final String marker = match.group(1)!;
-        final String text = match.group(2)!;
+        final String linkText = match.group(2) ?? '';
+        final String url = match.group(3) ?? match.group(0) ?? '';
         final TextStyle style = textstyle(marker);
+        Uri uri = Uri.dataFromString(url);
 
-        textSpans.add(TextSpan(text: text, style: style));
+        if (url.isNotEmpty) {
+          textSpans.add(
+            TextSpan(
+              text: linkText,
+              style: style.copyWith(
+                decoration: TextDecoration.underline,
+                color: Colors.blue,
+              ),
+              recognizer: TapGestureRecognizer()
+                ..onTap = () async {
+                  await launchUrl(uri);
+                },
+            ),
+          );
+        } else {
+          textSpans.add(TextSpan(text: linkText, style: style));
+        }
+
         i += match.start + match.group(0)!.length;
       }
     }

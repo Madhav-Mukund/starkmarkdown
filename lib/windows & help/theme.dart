@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 final blue = Color.fromARGB(255, 26, 35, 126);
@@ -76,6 +77,22 @@ class ThemeProvider extends ChangeNotifier {
     if (isDarkModeEnabled != _isDarkModeEnabled) {
       _isDarkModeEnabled = isDarkModeEnabled;
       notifyListeners();
+    }
+  }
+
+  void updateThemeBasedOnDevice(BuildContext context) {
+    final Brightness systemBrightness =
+        SchedulerBinding.instance.window.platformBrightness;
+    if (systemBrightness == Brightness.dark) {
+      if (!_isDarkModeEnabled) {
+        _isDarkModeEnabled = true;
+        notifyListeners();
+      }
+    } else {
+      if (_isDarkModeEnabled) {
+        _isDarkModeEnabled = false;
+        notifyListeners();
+      }
     }
   }
 }

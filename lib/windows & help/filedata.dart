@@ -6,15 +6,6 @@ class FileData {
   String? file_content;
 
   FileData({this.fid, this.title, this.file_content});
-
-  factory FileData.fromMap(map) {
-    return FileData(
-      fid: map['fid'],
-      title: map['title'],
-      file_content: map['file_content'],
-    );
-  }
-
   factory FileData.fromFirestore(DocumentSnapshot snapshot) {
     Map<String, dynamic> data = snapshot.data() as Map<String, dynamic>;
     return FileData(
@@ -24,7 +15,6 @@ class FileData {
     );
   }
 
-  // sending data to our server
   Map<String, dynamic> toMap() {
     return {
       'fid': fid,
@@ -33,7 +23,6 @@ class FileData {
     };
   }
 
-  // get a reference to the firestore collection
   static CollectionReference<Map<String, dynamic>> getFileDataCollection(
       String uid) {
     return FirebaseFirestore.instance
@@ -42,7 +31,6 @@ class FileData {
         .collection('files');
   }
 
-  // get a specific filedata document by id
   static Future<FileData?> getFileDataById(String fid, String uid) async {
     DocumentSnapshot<Map<String, dynamic>> snapshot =
         await getFileDataCollection(uid).doc(fid).get();

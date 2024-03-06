@@ -22,4 +22,4 @@ The features I have implemented are:
 - A search bar that provides options to search by title, date and *keywords*(upto 10 at a time).
 - Sort the files by title, Date modified and Date created.
 - A profile screen allowing user to add a profile picture and update name.
-- [ Github repository ]( https://www.google.com )
+- [ Github repository ](https://github.com/Madhav-Mukund/starkmarkdown)
